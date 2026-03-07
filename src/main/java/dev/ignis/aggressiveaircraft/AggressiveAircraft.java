@@ -6,9 +6,14 @@ import dev.ignis.aggressiveaircraft.client.render.HeavyBombRenderer;
 import dev.ignis.aggressiveaircraft.entities.ModEntities;
 import dev.ignis.aggressiveaircraft.items.ModItems;
 import dev.ignis.aggressiveaircraft.weapons.ModWeapons;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -31,6 +36,7 @@ public class AggressiveAircraft {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         modEventBus.addListener(this::commonSetup);
+        modEventBus.addListener(this::addCreative);
 
         ModItems.register(modEventBus);
         ModEntities.register(modEventBus);
@@ -38,6 +44,15 @@ public class AggressiveAircraft {
         MinecraftForge.EVENT_BUS.register(this);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, SPEC);
+    }
+
+    private void addCreative(BuildCreativeModeTabContentsEvent event) {
+        ResourceKey<CreativeModeTab> immersiveAircraftTab = ResourceKey.create(Registries.CREATIVE_MODE_TAB, ResourceLocation.tryBuild("immersive_aircraft", "immersive_aircraft"));
+        if (event.getTabKey().equals(immersiveAircraftTab)) {
+            event.accept(ModItems.MACHINE_GUN.get());
+            event.accept(ModItems.HEAVY_CANNON.get());
+            event.accept(ModItems.HEAVY_BOMB_BAY.get());
+        }
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
