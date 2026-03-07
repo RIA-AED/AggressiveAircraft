@@ -1,9 +1,9 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "dev.ignis.aggresiveaircraft.mixin",
+  "package": "dev.ignis.aggressiveaircraft.mixin",
   "compatibilityLevel": "JAVA_17",
-  "refmap": "aggresiveaircraft.refmap.json",
+  "refmap": "aggressiveaircraft.refmap.json",
   "mixins": [
     "InventoryVehicleEntityMixin",
     "VehicleScreenHandlerMixin"

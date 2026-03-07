@@ -1,7 +1,7 @@
-package dev.ignis.aggresiveaircraft.weapons;
+package dev.ignis.aggressiveaircraft.weapons;
 
-import dev.ignis.aggresiveaircraft.ModConfig;
-import dev.ignis.aggresiveaircraft.entities.HeavyBombEntity;
+import dev.ignis.aggressiveaircraft.ModConfig;
+import dev.ignis.aggressiveaircraft.entities.HeavyBombEntity;
 import immersive_aircraft.cobalt.network.NetworkHandler;
 import immersive_aircraft.entity.VehicleEntity;
 import immersive_aircraft.entity.misc.WeaponMount;
@@ -15,7 +15,7 @@ import org.joml.Vector4f;
 
 import java.util.Map;
 
-import static dev.ignis.aggresiveaircraft.entities.ModEntities.HEAVY_BOMB;
+import static dev.ignis.aggressiveaircraft.entities.ModEntities.HEAVY_BOMB;
 
 public class HeavyBombBay extends BulletWeapon {
     private static final float MAX_COOLDOWN = 30.0f;

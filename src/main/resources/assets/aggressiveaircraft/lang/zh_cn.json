@@ -1,0 +1,8 @@
+{
+  "item.aggressiveaircraft.machine_gun": "高速机枪",
+  "item.aggressiveaircraft.heavy_cannon": "高爆机炮",
+  "item.aggressiveaircraft.heavy_bomb_bay": "重型炸弹仓",
+  "item.aggressiveaircraft.item.weapon": "武器",
+  "entity.aggressiveaircraft.explosive_bullet": "高爆弹",
+  "entity.aggressiveaircraft.heavy_bomb": "重型炸弹"
+}

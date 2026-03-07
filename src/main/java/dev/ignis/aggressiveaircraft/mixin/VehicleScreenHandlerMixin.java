@@ -1,4 +1,4 @@
-package dev.ignis.aggresiveaircraft.mixin;
+package dev.ignis.aggressiveaircraft.mixin;
 
 import immersive_aircraft.entity.InventoryVehicleEntity;
 import immersive_aircraft.screen.VehicleScreenHandler;

@@ -1,11 +1,11 @@
-package dev.ignis.aggresiveaircraft;
+package dev.ignis.aggressiveaircraft;
 
 import com.mojang.logging.LogUtils;
-import dev.ignis.aggresiveaircraft.client.render.ExplosiveBulletRenderer;
-import dev.ignis.aggresiveaircraft.client.render.HeavyBombRenderer;
-import dev.ignis.aggresiveaircraft.entities.ModEntities;
-import dev.ignis.aggresiveaircraft.items.ModItems;
-import dev.ignis.aggresiveaircraft.weapons.ModWeapons;
+import dev.ignis.aggressiveaircraft.client.render.ExplosiveBulletRenderer;
+import dev.ignis.aggressiveaircraft.client.render.HeavyBombRenderer;
+import dev.ignis.aggressiveaircraft.entities.ModEntities;
+import dev.ignis.aggressiveaircraft.items.ModItems;
+import dev.ignis.aggressiveaircraft.weapons.ModWeapons;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -18,16 +18,16 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 
-import static dev.ignis.aggresiveaircraft.ModConfig.SPEC;
+import static dev.ignis.aggressiveaircraft.ModConfig.SPEC;
 
-@Mod(AggresiveAircraft.MODID)
-public class AggresiveAircraft {
+@Mod(AggressiveAircraft.MODID)
+public class AggressiveAircraft {
 
-    public static final String MODID = "aggresiveaircraft";
+    public static final String MODID = "aggressiveaircraft";
     public static final Logger LOGGER = LogUtils.getLogger();
 
     @SuppressWarnings("removal")
-    public AggresiveAircraft() {
+    public AggressiveAircraft() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         modEventBus.addListener(this::commonSetup);
@@ -43,7 +43,7 @@ public class AggresiveAircraft {
     private void commonSetup(final FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
             ModWeapons.register();
-            LOGGER.info("AggresiveAircraft weapons registered");
+            LOGGER.info("AggressiveAircraft weapons registered");
         });
     }
 

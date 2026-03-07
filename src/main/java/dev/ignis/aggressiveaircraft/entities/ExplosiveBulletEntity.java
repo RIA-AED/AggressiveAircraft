@@ -1,4 +1,4 @@
-package dev.ignis.aggresiveaircraft.entities;
+package dev.ignis.aggressiveaircraft.entities;
 
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;

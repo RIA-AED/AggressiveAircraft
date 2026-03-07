@@ -1,7 +1,7 @@
-package dev.ignis.aggresiveaircraft.weapons;
+package dev.ignis.aggressiveaircraft.weapons;
 
-import dev.ignis.aggresiveaircraft.ModConfig;
-import dev.ignis.aggresiveaircraft.entities.ExplosiveBulletEntity;
+import dev.ignis.aggressiveaircraft.ModConfig;
+import dev.ignis.aggressiveaircraft.entities.ExplosiveBulletEntity;
 import immersive_aircraft.cobalt.network.NetworkHandler;
 import immersive_aircraft.entity.VehicleEntity;
 import immersive_aircraft.entity.misc.WeaponMount;
@@ -15,7 +15,7 @@ import org.joml.Vector4f;
 
 import java.util.Map;
 
-import static dev.ignis.aggresiveaircraft.entities.ModEntities.EXPLOSIVE_BULLET;
+import static dev.ignis.aggressiveaircraft.entities.ModEntities.EXPLOSIVE_BULLET;
 
 public class HeavyCannon extends BulletWeapon {
     private final RotationalManager rotationalManager = new RotationalManager(this);

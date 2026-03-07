@@ -1,8 +1,8 @@
-package dev.ignis.aggresiveaircraft.client.render;
+package dev.ignis.aggressiveaircraft.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import dev.ignis.aggresiveaircraft.entities.HeavyBombEntity;
+import dev.ignis.aggressiveaircraft.entities.HeavyBombEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;

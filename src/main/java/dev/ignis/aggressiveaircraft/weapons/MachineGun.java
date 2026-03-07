@@ -1,6 +1,6 @@
-package dev.ignis.aggresiveaircraft.weapons;
+package dev.ignis.aggressiveaircraft.weapons;
 
-import dev.ignis.aggresiveaircraft.ModConfig;
+import dev.ignis.aggressiveaircraft.ModConfig;
 import immersive_aircraft.cobalt.network.NetworkHandler;
 import immersive_aircraft.entity.VehicleEntity;
 import immersive_aircraft.entity.bullet.BulletEntity;

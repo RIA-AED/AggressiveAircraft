@@ -1,11 +1,11 @@
-package dev.ignis.aggresiveaircraft;
+package dev.ignis.aggressiveaircraft;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 
-@Mod.EventBusSubscriber(modid = AggresiveAircraft.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@Mod.EventBusSubscriber(modid = dev.ignis.aggressiveaircraft.AggressiveAircraft.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 

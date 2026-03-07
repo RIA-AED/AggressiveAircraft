@@ -1,10 +1,10 @@
-package dev.ignis.aggresiveaircraft.client.render;
+package dev.ignis.aggressiveaircraft.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import dev.ignis.aggresiveaircraft.AggresiveAircraft;
-import dev.ignis.aggresiveaircraft.entities.ExplosiveBulletEntity;
+import dev.ignis.aggressiveaircraft.AggressiveAircraft;
+import dev.ignis.aggressiveaircraft.entities.ExplosiveBulletEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -15,7 +15,7 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class ExplosiveBulletRenderer extends EntityRenderer<ExplosiveBulletEntity> {
-    private static final ResourceLocation TEXTURE = ResourceLocation.tryBuild(AggresiveAircraft.MODID, "textures/entity/explosive_bullet.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.tryBuild(AggressiveAircraft.MODID, "textures/entity/explosive_bullet.png");
     private static final RenderType RENDER_TYPE = RenderType.entityCutoutNoCull(TEXTURE);
 
     public ExplosiveBulletRenderer(EntityRendererProvider.Context context) {
