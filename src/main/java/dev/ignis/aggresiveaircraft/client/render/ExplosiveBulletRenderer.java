@@ -15,7 +15,7 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class ExplosiveBulletRenderer extends EntityRenderer<ExplosiveBulletEntity> {
-    private static final ResourceLocation TEXTURE = new ResourceLocation(AggresiveAircraft.MODID, "textures/entity/explosive_bullet.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.tryBuild(AggresiveAircraft.MODID, "textures/entity/explosive_bullet.png");
     private static final RenderType RENDER_TYPE = RenderType.entityCutoutNoCull(TEXTURE);
 
     public ExplosiveBulletRenderer(EntityRendererProvider.Context context) {

@@ -18,7 +18,7 @@ public class ModEntities {
                     .clientTrackingRange(10)
                     .updateInterval(10)
                     .fireImmune()
-                    .build(new ResourceLocation(AggresiveAircraft.MODID, "explosive_bullet").toString()));
+                    .build(ResourceLocation.tryBuild(AggresiveAircraft.MODID, "explosive_bullet").toString()));
 
     public static final RegistryObject<EntityType<HeavyBombEntity>> HEAVY_BOMB = ENTITIES.register("heavy_bomb",
             () -> EntityType.Builder.<HeavyBombEntity>of(HeavyBombEntity::new, MobCategory.MISC)
@@ -26,7 +26,7 @@ public class ModEntities {
                     .clientTrackingRange(10)
                     .updateInterval(10)
                     .fireImmune()
-                    .build(new ResourceLocation(AggresiveAircraft.MODID, "heavy_bomb").toString()));
+                    .build(ResourceLocation.tryBuild(AggresiveAircraft.MODID, "heavy_bomb").toString()));
 
     public static void register(IEventBus eventBus) {
         ENTITIES.register(eventBus);

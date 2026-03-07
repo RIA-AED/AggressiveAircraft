@@ -26,6 +26,7 @@ public class AggresiveAircraft {
     public static final String MODID = "aggresiveaircraft";
     public static final Logger LOGGER = LogUtils.getLogger();
 
+    @SuppressWarnings("removal")
     public AggresiveAircraft() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 

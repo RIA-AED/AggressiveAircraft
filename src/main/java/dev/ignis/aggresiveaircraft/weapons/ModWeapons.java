@@ -8,15 +8,15 @@ import net.minecraft.resources.ResourceLocation;
 public class ModWeapons {
     public static void register() {
         WeaponRegistry.register(
-                new ResourceLocation(AggresiveAircraft.MODID, "machine_gun"),
+                ResourceLocation.tryBuild(AggresiveAircraft.MODID, "machine_gun"),
                 MachineGun::new
         );
         WeaponRegistry.register(
-                new ResourceLocation(AggresiveAircraft.MODID, "heavy_cannon"),
+                ResourceLocation.tryBuild(AggresiveAircraft.MODID, "heavy_cannon"),
                 HeavyCannon::new
         );
         WeaponRegistry.register(
-                new ResourceLocation(AggresiveAircraft.MODID, "heavy_bomb_bay"),
+                ResourceLocation.tryBuild(AggresiveAircraft.MODID, "heavy_bomb_bay"),
                 HeavyBombBay::new
         );
     }
