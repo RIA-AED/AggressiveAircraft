@@ -9,6 +9,9 @@
     "VehicleScreenHandlerMixin"
   ],
   "client": [
+    "AircraftEntityDebugMixin",
+    "AircraftEntityClientMixin",
+    "VehicleEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1
