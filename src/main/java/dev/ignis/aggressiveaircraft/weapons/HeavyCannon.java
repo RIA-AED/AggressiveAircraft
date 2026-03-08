@@ -8,6 +8,7 @@ import immersive_aircraft.entity.misc.WeaponMount;
 import immersive_aircraft.entity.weapon.BulletWeapon;
 import immersive_aircraft.entity.weapon.RotationalManager;
 import immersive_aircraft.network.c2s.FireMessage;
+import immersive_aircraft.resources.bbmodel.BBAnimationVariables;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
@@ -82,5 +83,15 @@ public class HeavyCannon extends BulletWeapon {
             fireAccumulator = 0;
             NetworkHandler.sendToServer(new FireMessage(getSlot(), index, getDirection()));
         }
+    }
+
+    @Override
+    public <T extends VehicleEntity> void setAnimationVariables(T entity, float time) {
+        super.setAnimationVariables(entity, time);
+
+        float tickDelta = time % 1.0f;
+        BBAnimationVariables.set("pitch", (float) (rotationalManager.getPitch(tickDelta) / Math.PI * 180.0f));
+        BBAnimationVariables.set("yaw", (float) (rotationalManager.getYaw(tickDelta) / Math.PI * 180.0f));
+        BBAnimationVariables.set("roll", (float) (rotationalManager.getRoll(tickDelta) / Math.PI * 180.0f));
     }
 }

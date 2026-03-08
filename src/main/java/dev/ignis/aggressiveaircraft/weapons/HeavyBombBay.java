@@ -7,6 +7,7 @@ import immersive_aircraft.entity.VehicleEntity;
 import immersive_aircraft.entity.misc.WeaponMount;
 import immersive_aircraft.entity.weapon.BulletWeapon;
 import immersive_aircraft.network.c2s.FireMessage;
+import immersive_aircraft.resources.bbmodel.BBAnimationVariables;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Matrix3f;
@@ -18,7 +19,6 @@ import java.util.Map;
 import static dev.ignis.aggressiveaircraft.entities.ModEntities.HEAVY_BOMB;
 
 public class HeavyBombBay extends BulletWeapon {
-    private static final float MAX_COOLDOWN = 30.0f;
     private float cooldown = 0.0f;
 
     public HeavyBombBay(VehicleEntity entity, ItemStack stack, WeaponMount mount, int slot) {
@@ -92,5 +92,11 @@ public class HeavyBombBay extends BulletWeapon {
     public float getCooldown() {
         float cooldownSeconds = (float)(double)ModConfig.HEAVY_BOMB_BAY_COOLDOWN.get();
         return Math.max(0.0f, cooldown / cooldownSeconds);
+    }
+
+    @Override
+    public <T extends VehicleEntity> void setAnimationVariables(T entity, float time) {
+        super.setAnimationVariables(entity, time);
+        BBAnimationVariables.set("weapon_ready", (float) (cooldown <= 0.0f ? 1.0f : 0.0f));
     }
 }

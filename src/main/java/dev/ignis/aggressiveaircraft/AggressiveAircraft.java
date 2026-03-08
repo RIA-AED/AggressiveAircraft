@@ -3,6 +3,9 @@ package dev.ignis.aggressiveaircraft;
 import com.mojang.logging.LogUtils;
 import dev.ignis.aggressiveaircraft.client.render.ExplosiveBulletRenderer;
 import dev.ignis.aggressiveaircraft.client.render.HeavyBombRenderer;
+import immersive_aircraft.WeaponRendererRegistry;
+import immersive_aircraft.client.render.entity.weaponRenderer.SimpleWeaponRenderer;
+import immersive_aircraft.resources.bbmodel.BBAnimationVariables;
 import dev.ignis.aggressiveaircraft.entities.ModEntities;
 import dev.ignis.aggressiveaircraft.items.ModItems;
 import dev.ignis.aggressiveaircraft.weapons.ModWeapons;
@@ -68,6 +71,23 @@ public class AggressiveAircraft {
         public static void onClientSetup(EntityRenderersEvent.RegisterRenderers event) {
             event.registerEntityRenderer(ModEntities.EXPLOSIVE_BULLET.get(), ExplosiveBulletRenderer::new);
             event.registerEntityRenderer(ModEntities.HEAVY_BOMB.get(), HeavyBombRenderer::new);
+
+            // Register custom animation variables
+            BBAnimationVariables.register("weapon_ready");
+
+            // Register weapon renderers
+            WeaponRendererRegistry.register(
+                    ResourceLocation.tryBuild(MODID, "machine_gun"),
+                    new SimpleWeaponRenderer(ResourceLocation.tryBuild(MODID, "machine_gun"))
+            );
+            WeaponRendererRegistry.register(
+                    ResourceLocation.tryBuild(MODID, "heavy_cannon"),
+                    new SimpleWeaponRenderer(ResourceLocation.tryBuild(MODID, "heavy_cannon"))
+            );
+            WeaponRendererRegistry.register(
+                    ResourceLocation.tryBuild(MODID, "heavy_bomb_bay"),
+                    new SimpleWeaponRenderer(ResourceLocation.tryBuild(MODID, "heavy_bomb_bay"))
+            );
         }
     }
 }
