@@ -1,7 +1,10 @@
 {
   "item.aggressiveaircraft.machine_gun": "高速机枪",
+  "item.aggressiveaircraft.machine_gun.description": "使用大口径弹药的高射速前射武器",
   "item.aggressiveaircraft.heavy_cannon": "高爆机炮",
+  "item.aggressiveaircraft.heavy_cannon.description": "发射高爆炮弹的重型机炮炮塔",
   "item.aggressiveaircraft.heavy_bomb_bay": "重型炸弹仓",
+  "item.aggressiveaircraft.heavy_bomb_bay.description": "能够投放航弹的大型炸弹仓",
   "item.aggressiveaircraft.item.weapon": "武器",
   "entity.aggressiveaircraft.explosive_bullet": "高爆弹",
   "entity.aggressiveaircraft.heavy_bomb": "重型炸弹"

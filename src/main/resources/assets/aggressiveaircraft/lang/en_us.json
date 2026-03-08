@@ -1,7 +1,10 @@
 {
   "item.aggressiveaircraft.machine_gun": "Machine Gun",
+  "item.aggressiveaircraft.machine_gun.description": "High-speed forward-firing weapon using large-caliber ammunition",
   "item.aggressiveaircraft.heavy_cannon": "Heavy Cannon",
+  "item.aggressiveaircraft.heavy_cannon.description": "Heavy cannon turret firing high-explosive shells",
   "item.aggressiveaircraft.heavy_bomb_bay": "Heavy Bomb Bay",
+  "item.aggressiveaircraft.heavy_bomb_bay.description": "Large bomb bay capable of dropping aerial bombs",
   "item.aggressiveaircraft.item.weapon": "Weapon",
   "entity.aggressiveaircraft.explosive_bullet": "Explosive Bullet",
   "entity.aggressiveaircraft.heavy_bomb": "Heavy Bomb"

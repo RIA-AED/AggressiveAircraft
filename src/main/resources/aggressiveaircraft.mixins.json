@@ -5,13 +5,11 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "aggressiveaircraft.refmap.json",
   "mixins": [
+    "AircraftEntityGroundPitchMixin",
     "InventoryVehicleEntityMixin",
     "VehicleScreenHandlerMixin"
   ],
   "client": [
-    "AircraftEntityDebugMixin",
-    "AircraftEntityClientMixin",
-    "VehicleEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1
