@@ -17,7 +17,7 @@ public class InventoryVehicleEntityMixin {
     private void preventInventoryOpenWhileFlying(Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
         InventoryVehicleEntity vehicle = (InventoryVehicleEntity) (Object) this;
         // 如果飞行器不在地面上，阻止打开库存
-        if (!vehicle.onGround()) {
+        if (!vehicle.onGround() && player.isCrouching()) {
             cir.setReturnValue(InteractionResult.PASS);
         }
     }

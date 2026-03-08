@@ -25,7 +25,7 @@ public abstract class AircraftEntityGroundPitchMixin {
     )
     private void forceGroundPitchWhenNoPilot(float pitch, CallbackInfo ci) {
         if((Object)this instanceof AircraftEntity aircraft) {
-            if (aircraft.getPassengers().isEmpty()) {
+            if (aircraft.getPassengers().isEmpty() && aircraft.onGround()) {
                 float groundPitch = -aircraft.getProperties().get(VehicleStat.GROUND_PITCH);
                 aggressiveAircraft$setXRot(groundPitch);
                 ci.cancel();
@@ -40,7 +40,7 @@ public abstract class AircraftEntityGroundPitchMixin {
     )
     private void forceGroundYawWhenNoPilot(float pitch, CallbackInfo ci) {
         if((Object)this instanceof AircraftEntity aircraft) {
-            if (aircraft.getPassengers().isEmpty()) {
+            if (aircraft.getPassengers().isEmpty() && aircraft.onGround()) {
                 aggressiveAircraft$setYRot(aggressiveAircraft$yRotStored);
                 ci.cancel();
             }else{
@@ -51,6 +51,8 @@ public abstract class AircraftEntityGroundPitchMixin {
 
     @Shadow
     private float xRot;
+    @Shadow
+    public float xRotO;
     @Shadow
     private float yRot;
 
@@ -63,6 +65,7 @@ public abstract class AircraftEntityGroundPitchMixin {
             Util.logAndPauseIfInIde("Invalid entity rotation: " + pitch + ", discarding.");
         } else {
             this.xRot = pitch;
+            this.xRotO = pitch;
         }
     }
 

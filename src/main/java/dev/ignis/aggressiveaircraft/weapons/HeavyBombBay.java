@@ -36,7 +36,7 @@ public class HeavyBombBay extends BulletWeapon {
     }
 
     public float getVelocity() {
-        return 0.5f;
+        return 0.0f;  // 炸弹没有初速度，自由落体
     }
 
     @Override
@@ -45,11 +45,14 @@ public class HeavyBombBay extends BulletWeapon {
         assert bomb != null;
         bomb.setExplosionPower(ModConfig.HEAVY_BOMB_BAY_EXPLOSION_POWER.get());
         bomb.setDestroyBlocks(ModConfig.HEAVY_BOMB_BAY_DESTROY_BLOCKS.get());
-        // PrimedTnt doesn't have setOwner, owner is set via NBT or EntityType.create
         bomb.setPos(position.x(), position.y(), position.z());
         
-        // Add plane's velocity to bomb
-        Vector3f vel = direction.mul(getVelocity(), new Vector3f());
+        // 炸弹继承飞机的速度，这样俯冲时炸弹会有向前的速度
+        Vector3f vel = new Vector3f(
+            (float) getEntity().getDeltaMovement().x,
+            (float) getEntity().getDeltaMovement().y,
+            (float) getEntity().getDeltaMovement().z
+        );
         bomb.setDeltaMovement(vel.x(), vel.y(), vel.z());
         
         return bomb;
