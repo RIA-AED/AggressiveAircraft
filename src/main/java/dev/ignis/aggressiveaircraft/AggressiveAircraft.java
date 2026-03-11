@@ -24,6 +24,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.fml.loading.FMLLoader;
 import org.slf4j.Logger;
 
 import static dev.ignis.aggressiveaircraft.ModConfig.SPEC;
@@ -33,6 +35,7 @@ public class AggressiveAircraft {
 
     public static final String MODID = "aggressiveaircraft";
     public static final Logger LOGGER = LogUtils.getLogger();
+    public static final boolean VALKYRIENSKIES_LOADED = true;
 
     @SuppressWarnings("removal")
     public AggressiveAircraft() {
