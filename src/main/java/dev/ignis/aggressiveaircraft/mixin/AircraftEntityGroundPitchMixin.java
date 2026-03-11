@@ -8,6 +8,8 @@ import net.minecraft.Util;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import org.joml.Quaterniond;
+import org.joml.Quaterniondc;
 import org.joml.Vector3d;
 import org.joml.primitives.AABBd;
 import org.joml.primitives.AABBdc;
@@ -26,6 +28,9 @@ import java.util.Optional;
 public abstract class AircraftEntityGroundPitchMixin {
     @Unique
     private float aggressiveAircraft$yRotStored = 0;
+
+    @Unique
+    private int aggressiveAircraft$lastPassengerCount = 0;
 
     @Unique
     private float aggressiveAircraft$getYRotOffset(){
@@ -50,16 +55,39 @@ public abstract class AircraftEntityGroundPitchMixin {
     }
 
     @Unique
-    private float aggressiveAircraft$getShipYaw(){
+    private float aggressiveAircraft$getShipYaw() {
         Ship ship = aggressiveAircraft$getShipManaging();
-        if(ship != null){
-            return (float)Math.toDegrees(ship.getTransform().getRotation().getEulerAnglesXYZ(new Vector3d()).y);
-        }else return 0;
+        if (ship != null) {
+            Quaterniondc rotation = ship.getTransform().getRotation();
+            // 从四元数计算完整范围的偏航角
+            return (float) Math.toDegrees(Math.atan2(
+                    2.0 * (rotation.w() * rotation.y() + rotation.x() * rotation.z()),
+                    1.0 - 2.0 * (rotation.y() * rotation.y() + rotation.x() * rotation.x())
+            ));
+        }
+        return 0;
+    }
+
+    @Unique
+    private float aggressiveAircraft$getRelativeYaw(float worldYaw, float shipYaw) {
+        // 计算实体相对于船的偏航角
+        return worldYaw - shipYaw;
+    }
+
+    @Unique
+    private float aggressiveAircraft$getWorldYawFromRelative(float relativeYaw, float shipYaw) {
+        // 将相对偏航转换为世界偏航
+        return relativeYaw + shipYaw;
     }
 
     @Unique
     private float aggressiveAircraft$getRealYaw(float yaw){
         return yaw - aggressiveAircraft$getYRotOffset();
+    }
+
+    @Unique
+    private float aggressiveAircraft$getWorldYawFromRelative(float relativeYaw){
+        return relativeYaw + aggressiveAircraft$getYRotOffset();
     }
 
 
@@ -76,14 +104,20 @@ public abstract class AircraftEntityGroundPitchMixin {
     private void syncYawWithShip(CallbackInfo ci) {
         Entity self = (Entity)(Object)this;
         if (self instanceof VehicleEntity aircraft) {
-            boolean isClient = self.level().isClientSide();
+            int currentPassengerCount = aircraft.getPassengers().size();
+            if (aggressiveAircraft$lastPassengerCount == 0 && currentPassengerCount == 1) {
+                aggressiveAircraft$onPassengerEnter();
+            } else if (aggressiveAircraft$lastPassengerCount == 1 && currentPassengerCount == 0) {
+                aggressiveAircraft$onPassengerExit();
+            }
+            aggressiveAircraft$lastPassengerCount = currentPassengerCount;
+
             if (aircraft.getPassengers().isEmpty() && aircraft.onGround()) {
                 if (AggressiveAircraft.VALKYRIENSKIES_LOADED) {
                     Ship ship = aggressiveAircraft$getShipManaging();
                     if (ship != null) {
-                        AggressiveAircraft.LOGGER.info("[YRot] isClient=" + isClient + ", ship yaw="+aggressiveAircraft$getShipYaw()+", stored="+aggressiveAircraft$yRotStored+", current="+getYRot());
-                        float currentShipYaw = aggressiveAircraft$getShipYaw();
-                        aggressiveAircraft$setYRot(aggressiveAircraft$yRotStored + currentShipYaw);
+                        float targetYaw = aggressiveAircraft$getWorldYawFromRelative(aggressiveAircraft$yRotStored);
+                        aggressiveAircraft$setYRot(targetYaw);
                     }
                 }
             }
@@ -113,13 +147,21 @@ public abstract class AircraftEntityGroundPitchMixin {
             at = @At("HEAD"),
             cancellable = true
     )
-    private void forceGroundYawWhenNoPilot(float pitch, CallbackInfo ci) {
+    private void forceGroundYawWhenNoPilot(float yaw, CallbackInfo ci) {
         if((Object)this instanceof VehicleEntity aircraft) {
             if (aircraft.getPassengers().isEmpty() && aircraft.onGround()) {
-                aggressiveAircraft$setYRot(aggressiveAircraft$yRotStored+aggressiveAircraft$getYRotOffset());
-                ci.cancel();
-            }else{
-                aggressiveAircraft$yRotStored = aggressiveAircraft$getRealYaw(this.getYRot());
+                Ship ship = aggressiveAircraft$getShipManaging();
+                if (ship != null) {
+                    float shipYaw = aggressiveAircraft$getShipYaw();
+                    // 使用存储的相对偏航 + 当前船的偏航
+                    float targetYaw = aggressiveAircraft$getWorldYawFromRelative(aggressiveAircraft$yRotStored, shipYaw);
+                    aggressiveAircraft$setYRot(-targetYaw);
+                    ci.cancel();
+                }
+            } else {
+                // 存储相对偏航
+                float shipYaw = aggressiveAircraft$getShipYaw();
+                aggressiveAircraft$yRotStored = aggressiveAircraft$getRelativeYaw(yaw, shipYaw);
             }
         }
     }
@@ -151,5 +193,15 @@ public abstract class AircraftEntityGroundPitchMixin {
         } else {
             this.yRot = yaw;
         }
+    }
+
+    @Unique
+    private void aggressiveAircraft$onPassengerEnter() {
+        // 乘客坐下时触发
+    }
+
+    @Unique
+    private void aggressiveAircraft$onPassengerExit() {
+        // 乘客离开时触发
     }
 }
