@@ -10,6 +10,7 @@
     "VehicleScreenHandlerMixin"
   ],
   "client": [
+    "client.VehicleEntityClientMixin"
   ],
   "injectors": {
     "defaultRequire": 1

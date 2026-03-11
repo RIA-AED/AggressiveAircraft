@@ -63,20 +63,28 @@ public abstract class AircraftEntityGroundPitchMixin {
     }
 
 
+    @Shadow
+    public float xRotO;
+
+    @Shadow
+    public abstract float getViewXRot(float tickDelta);
+
     @Inject(
             method = "tick",
             at = @At("TAIL")
     )
     private void syncYawWithShip(CallbackInfo ci) {
-        if ((Object)this instanceof VehicleEntity aircraft) {
-            if (AggressiveAircraft.VALKYRIENSKIES_LOADED 
-                    && aircraft.getPassengers().isEmpty() 
-                    && aircraft.onGround()) {
-                Ship ship = aggressiveAircraft$getShipManaging();
-                if (ship != null) {
-                    AggressiveAircraft.LOGGER.info("Is on ship, ship yaw: "+aggressiveAircraft$getShipYaw()+", self yaw: "+aggressiveAircraft$yRotStored+", current: "+getYRot());
-                    float currentShipYaw = aggressiveAircraft$getShipYaw();
-                    aggressiveAircraft$setYRot(aggressiveAircraft$yRotStored + currentShipYaw);
+        Entity self = (Entity)(Object)this;
+        if (self instanceof VehicleEntity aircraft) {
+            boolean isClient = self.level().isClientSide();
+            if (aircraft.getPassengers().isEmpty() && aircraft.onGround()) {
+                if (AggressiveAircraft.VALKYRIENSKIES_LOADED) {
+                    Ship ship = aggressiveAircraft$getShipManaging();
+                    if (ship != null) {
+                        AggressiveAircraft.LOGGER.info("[YRot] isClient=" + isClient + ", ship yaw="+aggressiveAircraft$getShipYaw()+", stored="+aggressiveAircraft$yRotStored+", current="+getYRot());
+                        float currentShipYaw = aggressiveAircraft$getShipYaw();
+                        aggressiveAircraft$setYRot(aggressiveAircraft$yRotStored + currentShipYaw);
+                    }
                 }
             }
         }
@@ -119,12 +127,12 @@ public abstract class AircraftEntityGroundPitchMixin {
     @Shadow
     private float xRot;
     @Shadow
-    public float xRotO;
-    @Shadow
     private float yRot;
 
     @Shadow
     public abstract float getYRot();
+
+    @Shadow private boolean onGround;
 
     @Unique
     private void aggressiveAircraft$setXRot(float pitch) {
