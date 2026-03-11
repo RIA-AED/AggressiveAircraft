@@ -55,6 +55,9 @@ public class AggressiveAircraft {
             event.accept(ModItems.MACHINE_GUN.get());
             event.accept(ModItems.HEAVY_CANNON.get());
             event.accept(ModItems.HEAVY_BOMB_BAY.get());
+            event.accept(ModItems.LIGHT_MG_AMMO.get());
+            event.accept(ModItems.HE_CANNON_AMMO.get());
+            event.accept(ModItems.BOMB_200LB.get());
         }
     }
 

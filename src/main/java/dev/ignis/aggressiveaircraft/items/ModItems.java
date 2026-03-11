@@ -20,6 +20,15 @@ public class ModItems {
     public static final RegistryObject<Item> HEAVY_BOMB_BAY = ITEMS.register("heavy_bomb_bay",
             () -> new WeaponItem(new Item.Properties().stacksTo(1), immersive_aircraft.entity.misc.WeaponMount.Type.DROP));
 
+    public static final RegistryObject<Item> LIGHT_MG_AMMO = ITEMS.register("light_mg_ammo",
+            () -> new Item(new Item.Properties().stacksTo(16)));
+
+    public static final RegistryObject<Item> HE_CANNON_AMMO = ITEMS.register("he_cannon_ammo",
+            () -> new Item(new Item.Properties().stacksTo(4)));
+
+    public static final RegistryObject<Item> BOMB_200LB = ITEMS.register("bomb_200lb",
+            () -> new Item(new Item.Properties().stacksTo(1)));
+
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
     }

@@ -5,6 +5,9 @@
   "item.aggressiveaircraft.heavy_cannon.description": "发射高爆炮弹的重型机炮炮塔",
   "item.aggressiveaircraft.heavy_bomb_bay": "重型炸弹仓",
   "item.aggressiveaircraft.heavy_bomb_bay.description": "能够投放航弹的大型炸弹仓",
+  "item.aggressiveaircraft.light_mg_ammo": "轻型机枪弹药",
+  "item.aggressiveaircraft.he_cannon_ammo": "高爆机炮弹药",
+  "item.aggressiveaircraft.bomb_200lb": "200磅航弹",
   "item.aggressiveaircraft.item.weapon": "武器",
   "entity.aggressiveaircraft.explosive_bullet": "高爆弹",
   "entity.aggressiveaircraft.heavy_bomb": "重型炸弹"

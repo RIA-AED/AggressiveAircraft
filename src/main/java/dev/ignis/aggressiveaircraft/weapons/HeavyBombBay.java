@@ -71,7 +71,7 @@ public class HeavyBombBay extends BulletWeapon {
     public void fire(Vector3f direction) {
         String ammoId = ModConfig.HEAVY_BOMB_BAY_AMMO.get();
         int consumption = ModConfig.HEAVY_BOMB_BAY_AMMO_CONSUMPTION.get();
-        if (spentAmmo(Map.of(ammoId, 100), consumption)) {
+        if (spentAmmo(Map.of(ammoId, 1), consumption)) {
             super.fire(direction);
         }
     }

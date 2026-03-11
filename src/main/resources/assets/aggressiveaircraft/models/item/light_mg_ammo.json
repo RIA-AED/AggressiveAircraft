@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "aggressiveaircraft:item/light_mg_ammo"
+  }
+}

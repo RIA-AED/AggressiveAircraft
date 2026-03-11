@@ -62,7 +62,7 @@ public class MachineGun extends BulletWeapon {
     public void fire(Vector3f direction) {
         String ammoId = ModConfig.MACHINE_GUN_AMMO.get();
         int consumption = ModConfig.MACHINE_GUN_AMMO_CONSUMPTION.get();
-        if (spentAmmo(Map.of(ammoId, 100), consumption)) {
+        if (spentAmmo(Map.of(ammoId, 1), consumption)) {
             super.fire(direction);
         }
     }

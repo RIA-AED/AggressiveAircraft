@@ -5,6 +5,9 @@
   "item.aggressiveaircraft.heavy_cannon.description": "Heavy cannon turret firing high-explosive shells",
   "item.aggressiveaircraft.heavy_bomb_bay": "Heavy Bomb Bay",
   "item.aggressiveaircraft.heavy_bomb_bay.description": "Large bomb bay capable of dropping aerial bombs",
+  "item.aggressiveaircraft.light_mg_ammo": "Light MG Ammo",
+  "item.aggressiveaircraft.he_cannon_ammo": "HE Cannon Ammo",
+  "item.aggressiveaircraft.bomb_200lb": "200lb Bomb",
   "item.aggressiveaircraft.item.weapon": "Weapon",
   "entity.aggressiveaircraft.explosive_bullet": "Explosive Bullet",
   "entity.aggressiveaircraft.heavy_bomb": "Heavy Bomb"

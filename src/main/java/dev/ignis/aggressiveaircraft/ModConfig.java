@@ -36,7 +36,7 @@ public class ModConfig {
         BUILDER.push("machine_gun");
         MACHINE_GUN_AMMO = BUILDER
                 .comment("Ammo item ID for Machine Gun")
-                .define("ammo", "createbigcannons:machine_gun_round");
+                .define("ammo", "aggressiveaircraft:light_mg_ammo");
         MACHINE_GUN_AMMO_CONSUMPTION = BUILDER
                 .comment("Ammo consumption per shot")
                 .defineInRange("ammo_consumption", 1, 1, 64);
@@ -45,13 +45,13 @@ public class ModConfig {
                 .defineInRange("damage", 10, 1, 100);
         MACHINE_GUN_FIRE_RATE = BUILDER
                 .comment("Fire rate in shots per second")
-                .defineInRange("fire_rate", 5.0, 0.1, 20.0);
+                .defineInRange("fire_rate", 8.0, 0.1, 20.0);
         BUILDER.pop();
 
         BUILDER.push("heavy_cannon");
         HEAVY_CANNON_AMMO = BUILDER
                 .comment("Ammo item ID for Heavy Cannon")
-                .define("ammo", "createbigcannons:flak_autocannon_round");
+                .define("ammo", "aggressiveaircraft:he_cannon_ammo");
         HEAVY_CANNON_AMMO_CONSUMPTION = BUILDER
                 .comment("Ammo consumption per shot")
                 .defineInRange("ammo_consumption", 1, 1, 64);
@@ -72,7 +72,7 @@ public class ModConfig {
         BUILDER.push("heavy_bomb_bay");
         HEAVY_BOMB_BAY_AMMO = BUILDER
                 .comment("Ammo item ID for Heavy Bomb Bay")
-                .define("ammo", "createbigcannons:he_shell");
+                .define("ammo", "aggressiveaircraft:bomb_200lb");
         HEAVY_BOMB_BAY_AMMO_CONSUMPTION = BUILDER
                 .comment("Ammo consumption per drop")
                 .defineInRange("ammo_consumption", 4, 1, 64);
