@@ -7,10 +7,7 @@ import immersive_aircraft.item.upgrade.VehicleStat;
 import net.minecraft.Util;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
-import org.joml.Quaterniond;
 import org.joml.Quaterniondc;
-import org.joml.Vector3d;
 import org.joml.primitives.AABBd;
 import org.joml.primitives.AABBdc;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,8 +18,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.api.ValkyrienSkies;
-
-import java.util.Optional;
 
 @Mixin(Entity.class)
 public abstract class AircraftEntityGroundPitchMixin {
@@ -41,6 +36,23 @@ public abstract class AircraftEntityGroundPitchMixin {
     @Unique
     private float aggressiveAircraft$getYRotOffset(){
         return AggressiveAircraft.VALKYRIENSKIES_LOADED ? aggressiveAircraft$getShipYaw() : 0;
+    }
+
+    @Unique
+    private boolean aggressiveAircraft$isSelfNotPilotOrEmpty() {
+        Entity self = (Entity)(Object)this;
+        VehicleEntity aircraft = (VehicleEntity) self;
+        if (self.level().isClientSide()) {
+            // 客户端：检查是否包含本地玩家
+            for (Entity passenger : aircraft.getPassengers()) {
+                if (passenger instanceof net.minecraft.client.player.LocalPlayer) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        // 服务端：保持原逻辑
+        return aircraft.getPassengers().isEmpty();
     }
 
     @Unique
@@ -152,7 +164,7 @@ public abstract class AircraftEntityGroundPitchMixin {
     )
     private void forceGroundPitchWhenNoPilot(float pitch, CallbackInfo ci) {
         if((Object)this instanceof AircraftEntity aircraft) {
-            if (aircraft.getPassengers().isEmpty() && aircraft.onGround()) {
+            if (aircraft.getEnginePower()==0 && aggressiveAircraft$isSelfNotPilotOrEmpty() && aircraft.onGround()) {
                 float groundPitch = -aircraft.getProperties().get(VehicleStat.GROUND_PITCH);
                 aggressiveAircraft$setXRot(groundPitch);
                 ci.cancel();

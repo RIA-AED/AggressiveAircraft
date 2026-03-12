@@ -3,12 +3,24 @@ package dev.ignis.aggressiveaircraft.mixin.client;
 import immersive_aircraft.entity.VehicleEntity;
 import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Entity.class)
 public class VehicleEntityClientMixin {
+
+    @Unique
+    private boolean aggressiveAircraft$isSelfNotPilotOrEmpty() {
+        VehicleEntity aircraft = (VehicleEntity)(Object)this;
+        for (Entity passenger : aircraft.getPassengers()) {
+            if (passenger instanceof net.minecraft.client.player.LocalPlayer) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     /**
      * 客户端：当飞机无乘客时，强制返回 onGround=true
@@ -23,7 +35,7 @@ public class VehicleEntityClientMixin {
         Entity self = (Entity) (Object) this;
         // 只在客户端执行，且是 VehicleEntity
         if (self.level().isClientSide() && self instanceof VehicleEntity vehicle) {
-            if (vehicle.getPassengers().isEmpty()) {
+            if (aggressiveAircraft$isSelfNotPilotOrEmpty()) {
                 cir.setReturnValue(true);
             }
         }
