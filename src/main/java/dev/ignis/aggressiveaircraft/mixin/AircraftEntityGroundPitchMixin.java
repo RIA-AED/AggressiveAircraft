@@ -164,7 +164,7 @@ public abstract class AircraftEntityGroundPitchMixin {
     )
     private void forceGroundPitchWhenNoPilot(float pitch, CallbackInfo ci) {
         if((Object)this instanceof AircraftEntity aircraft) {
-            if (aircraft.getEnginePower()==0 && aggressiveAircraft$isSelfNotPilotOrEmpty() && aircraft.onGround()) {
+            if (aggressiveAircraft$cachedShip!=null && aggressiveAircraft$isSelfNotPilotOrEmpty() && aircraft.onGround()) {
                 float groundPitch = -aircraft.getProperties().get(VehicleStat.GROUND_PITCH);
                 aggressiveAircraft$setXRot(groundPitch);
                 ci.cancel();
