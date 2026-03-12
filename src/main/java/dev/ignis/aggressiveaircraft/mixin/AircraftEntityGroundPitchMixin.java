@@ -33,9 +33,18 @@ public abstract class AircraftEntityGroundPitchMixin {
     private int aggressiveAircraft$lastPassengerCount = 0;
 
     @Unique
+    private Ship aggressiveAircraft$cachedShip = null;
+
+    @Unique
+    private int aggressiveAircraft$shipCacheTick = 0;
+
+    @Unique
     private float aggressiveAircraft$getYRotOffset(){
         return AggressiveAircraft.VALKYRIENSKIES_LOADED ? aggressiveAircraft$getShipYaw() : 0;
     }
+
+    @Unique
+    private static final int SHIP_CACHE_INTERVAL = 5;
 
     @Unique
     private Ship aggressiveAircraft$getShipManaging(){
@@ -43,15 +52,22 @@ public abstract class AircraftEntityGroundPitchMixin {
         Level level = self.level();
         if (level == null) return null;
 
-        AABBdc checkArea = new AABBd(
-                self.getX() - 0.5, self.getY() - 2.0, self.getZ() - 0.5,
-                self.getX() + 0.5, self.getY(), self.getZ() + 0.5
-        );
+        long currentTick = level.getGameTime();
+        if (currentTick - aggressiveAircraft$shipCacheTick >= SHIP_CACHE_INTERVAL) {
+            aggressiveAircraft$shipCacheTick = (int) currentTick;
 
-        for (Ship ship : ValkyrienSkies.getShipsIntersecting(level, checkArea)) {
-            return ship;
+            AABBdc checkArea = new AABBd(
+                    self.getX() - 0.5, self.getY() - 2.0, self.getZ() - 0.5,
+                    self.getX() + 0.5, self.getY(), self.getZ() + 0.5
+            );
+
+            aggressiveAircraft$cachedShip = null;
+            for (Ship ship : ValkyrienSkies.getShipsIntersecting(level, checkArea)) {
+                aggressiveAircraft$cachedShip = ship;
+                break;
+            }
         }
-        return null;
+        return aggressiveAircraft$cachedShip;
     }
 
     @Unique
@@ -60,7 +76,7 @@ public abstract class AircraftEntityGroundPitchMixin {
         if (ship != null) {
             Quaterniondc rotation = ship.getTransform().getRotation();
             // 从四元数计算完整范围的偏航角
-            return (float) Math.toDegrees(Math.atan2(
+            return -(float) Math.toDegrees(Math.atan2(
                     2.0 * (rotation.w() * rotation.y() + rotation.x() * rotation.z()),
                     1.0 - 2.0 * (rotation.y() * rotation.y() + rotation.x() * rotation.x())
             ));
@@ -69,20 +85,22 @@ public abstract class AircraftEntityGroundPitchMixin {
     }
 
     @Unique
+    private float aggressiveAircraft$normalizeYaw(float yaw) {
+        while (yaw > 180.0f) yaw -= 360.0f;
+        while (yaw < -180.0f) yaw += 360.0f;
+        return yaw;
+    }
+
+    @Unique
     private float aggressiveAircraft$getRelativeYaw(float worldYaw, float shipYaw) {
-        // 计算实体相对于船的偏航角
-        return worldYaw - shipYaw;
+        // 计算实体相对于船的偏航角，并归一化到 [-180, 180]
+        return aggressiveAircraft$normalizeYaw(worldYaw - shipYaw);
     }
 
     @Unique
     private float aggressiveAircraft$getWorldYawFromRelative(float relativeYaw, float shipYaw) {
         // 将相对偏航转换为世界偏航
-        return relativeYaw + shipYaw;
-    }
-
-    @Unique
-    private float aggressiveAircraft$getRealYaw(float yaw){
-        return yaw - aggressiveAircraft$getYRotOffset();
+        return shipYaw + relativeYaw;
     }
 
     @Unique
@@ -155,13 +173,15 @@ public abstract class AircraftEntityGroundPitchMixin {
                     float shipYaw = aggressiveAircraft$getShipYaw();
                     // 使用存储的相对偏航 + 当前船的偏航
                     float targetYaw = aggressiveAircraft$getWorldYawFromRelative(aggressiveAircraft$yRotStored, shipYaw);
-                    aggressiveAircraft$setYRot(-targetYaw);
+                    //AggressiveAircraft.LOGGER.info("[Calc] Target World Yaw: " + targetYaw + ", Ship Yaw: " + shipYaw + ", Stored: " + aggressiveAircraft$yRotStored);
+                    aggressiveAircraft$setYRot(targetYaw);
                     ci.cancel();
                 }
             } else {
                 // 存储相对偏航
                 float shipYaw = aggressiveAircraft$getShipYaw();
-                aggressiveAircraft$yRotStored = aggressiveAircraft$getRelativeYaw(yaw, shipYaw);
+                aggressiveAircraft$yRotStored = aggressiveAircraft$getRelativeYaw(yRot, shipYaw);
+                //AggressiveAircraft.LOGGER.info("[Set] World Yaw: " + yRot + ", Ship Yaw: " + shipYaw + ", Stored: " + aggressiveAircraft$yRotStored);
             }
         }
     }
