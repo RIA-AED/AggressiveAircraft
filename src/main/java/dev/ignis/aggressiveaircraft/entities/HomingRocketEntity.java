@@ -50,16 +50,28 @@ public class HomingRocketEntity extends AbstractHurtingProjectile {
     @Override
     public void tick() {
         if (this.level().isClientSide) {
-            for (int i = 0; i < 3; i++) {
-                double offsetX = (this.random.nextDouble() - 0.5) * 0.3;
-                double offsetY = (this.random.nextDouble() - 0.5) * 0.3;
-                double offsetZ = (this.random.nextDouble() - 0.5) * 0.3;
+            // 生成更多更密的烟雾，带扩散效果
+            Vec3 motion = this.getDeltaMovement();
+            for (int i = 0; i < 8; i++) {
+                // 在火箭后方扩散生成
+                double trailOffset = i * 0.15; // 沿运动方向向后偏移
+                double spreadX = (this.random.nextDouble() - 0.5) * 0.8; // 更大扩散范围
+                double spreadY = (this.random.nextDouble() - 0.5) * 0.8;
+                double spreadZ = (this.random.nextDouble() - 0.5) * 0.8;
+
+                double spawnX = this.getX() - motion.x * trailOffset + spreadX;
+                double spawnY = this.getY() - motion.y * trailOffset + spreadY;
+                double spawnZ = this.getZ() - motion.z * trailOffset + spreadZ;
+
+                // 随机扩散速度
+                double velX = (this.random.nextDouble() - 0.5) * 0.02;
+                double velY = 0.03 + this.random.nextDouble() * 0.02; // 向上飘
+                double velZ = (this.random.nextDouble() - 0.5) * 0.02;
+
                 this.level().addParticle(
                     ParticleTypes.CAMPFIRE_SIGNAL_SMOKE,
-                    this.getX() + offsetX,
-                    this.getY() + offsetY,
-                    this.getZ() + offsetZ,
-                    0.0, 0.05, 0.0
+                    spawnX, spawnY, spawnZ,
+                    velX, velY, velZ
                 );
             }
             // 客户端也保持恒定速度，避免与服务端不同步
@@ -121,8 +133,9 @@ public class HomingRocketEntity extends AbstractHurtingProjectile {
         List<LivingEntity> entities = this.level().getEntitiesOfClass(LivingEntity.class, searchBox, this::isValidMidFlightTarget);
 
         if (!entities.isEmpty()) {
-            // 选择血量最多的目标
+            // 选择血量最多的目标，过滤25生命值以下
             target = entities.stream()
+                .filter(e -> e.getHealth() >= 25.0f)
                 .max(Comparator.comparingDouble(LivingEntity::getHealth))
                 .orElse(null);
         }
@@ -222,6 +235,11 @@ public class HomingRocketEntity extends AbstractHurtingProjectile {
     @Override
     public boolean hurt(net.minecraft.world.damagesource.DamageSource source, float amount) {
         return false;
+    }
+
+    @Override
+    public boolean isPushable() {
+        return false; // 禁止被爆炸等外力推动
     }
 
     @Override

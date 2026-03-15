@@ -83,13 +83,22 @@ public class HomingRocketLauncher extends BulletWeapon {
             new ClipContext(startPos, endPos, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, getEntity())
         );
 
-        Vec3 hitPos = blockHit.getType() != HitResult.Type.MISS
-            ? blockHit.getLocation()
-            : endPos;
+        Vec3 scanCenter;
+        if (blockHit.getType() != HitResult.Type.MISS) {
+            // 命中方块，在命中点扫描
+            scanCenter = blockHit.getLocation();
+        } else {
+            // 未命中方块，在距离飞机40格处扫描
+            scanCenter = startPos.add(
+                direction.x * 40.0,
+                direction.y * 40.0,
+                direction.z * 40.0
+            );
+        }
 
         AABB searchBox = new AABB(
-            hitPos.x - SEARCH_RADIUS, hitPos.y - SEARCH_RADIUS, hitPos.z - SEARCH_RADIUS,
-            hitPos.x + SEARCH_RADIUS, hitPos.y + SEARCH_RADIUS, hitPos.z + SEARCH_RADIUS
+            scanCenter.x - 40.0, scanCenter.y - 40.0, scanCenter.z - 40.0,
+            scanCenter.x + 40.0, scanCenter.y + 40.0, scanCenter.z + 40.0
         );
 
         List<LivingEntity> entities = getEntity().level().getEntitiesOfClass(
@@ -99,6 +108,7 @@ public class HomingRocketLauncher extends BulletWeapon {
         );
 
         return entities.stream()
+            .filter(e -> e.getHealth() >= 25.0f) // 过滤25生命值以下的目标
             .max(Comparator.comparingDouble(LivingEntity::getHealth))
             .orElse(null);
     }
