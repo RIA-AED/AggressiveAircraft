@@ -28,6 +28,14 @@ public class ModEntities {
                     .fireImmune()
                     .build(ResourceLocation.tryBuild(AggressiveAircraft.MODID, "heavy_bomb").toString()));
 
+    public static final RegistryObject<EntityType<HomingRocketEntity>> HOMING_ROCKET = ENTITIES.register("homing_rocket",
+            () -> EntityType.Builder.<HomingRocketEntity>of(HomingRocketEntity::new, MobCategory.MISC)
+                    .sized(0.3f, 0.3f)
+                    .clientTrackingRange(10)
+                    .updateInterval(10)
+                    .fireImmune()
+                    .build(ResourceLocation.tryBuild(AggressiveAircraft.MODID, "homing_rocket").toString()));
+
     public static void register(IEventBus eventBus) {
         ENTITIES.register(eventBus);
     }

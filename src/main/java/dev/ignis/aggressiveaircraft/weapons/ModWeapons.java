@@ -18,5 +18,9 @@ public class ModWeapons {
                 ResourceLocation.tryBuild(AggressiveAircraft.MODID, "heavy_bomb_bay"),
                 HeavyBombBay::new
         );
+        WeaponRegistry.register(
+                ResourceLocation.tryBuild(AggressiveAircraft.MODID, "homing_rocket_launcher"),
+                HomingRocketLauncher::new
+        );
     }
 }

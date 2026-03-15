@@ -3,6 +3,7 @@ package dev.ignis.aggressiveaircraft;
 import com.mojang.logging.LogUtils;
 import dev.ignis.aggressiveaircraft.client.render.ExplosiveBulletRenderer;
 import dev.ignis.aggressiveaircraft.client.render.HeavyBombRenderer;
+import dev.ignis.aggressiveaircraft.client.render.HomingRocketRenderer;
 import immersive_aircraft.WeaponRendererRegistry;
 import immersive_aircraft.client.render.entity.weaponRenderer.SimpleWeaponRenderer;
 import immersive_aircraft.resources.bbmodel.BBAnimationVariables;
@@ -61,6 +62,8 @@ public class AggressiveAircraft {
             event.accept(ModItems.LIGHT_MG_AMMO.get());
             event.accept(ModItems.HE_CANNON_AMMO.get());
             event.accept(ModItems.BOMB_200LB.get());
+            event.accept(ModItems.HOMING_ROCKET_LAUNCHER.get());
+            event.accept(ModItems.HOMING_ROCKET_AMMO.get());
         }
     }
 
@@ -77,6 +80,7 @@ public class AggressiveAircraft {
         public static void onClientSetup(EntityRenderersEvent.RegisterRenderers event) {
             event.registerEntityRenderer(ModEntities.EXPLOSIVE_BULLET.get(), ExplosiveBulletRenderer::new);
             event.registerEntityRenderer(ModEntities.HEAVY_BOMB.get(), HeavyBombRenderer::new);
+            event.registerEntityRenderer(ModEntities.HOMING_ROCKET.get(), HomingRocketRenderer::new);
 
             // Register custom animation variables
             BBAnimationVariables.register("weapon_ready");
@@ -93,6 +97,10 @@ public class AggressiveAircraft {
             WeaponRendererRegistry.register(
                     ResourceLocation.tryBuild(MODID, "heavy_bomb_bay"),
                     new SimpleWeaponRenderer(ResourceLocation.tryBuild(MODID, "heavy_bomb_bay"))
+            );
+            WeaponRendererRegistry.register(
+                    ResourceLocation.tryBuild(MODID, "homing_rocket_launcher"),
+                    new SimpleWeaponRenderer(ResourceLocation.tryBuild(MODID, "homing_rocket_launcher"))
             );
         }
     }

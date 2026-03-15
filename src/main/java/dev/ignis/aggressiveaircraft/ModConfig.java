@@ -32,6 +32,13 @@ public class ModConfig {
     public static final ForgeConfigSpec.DoubleValue HEAVY_BOMB_BAY_EXPLOSION_POWER;
     public static final ForgeConfigSpec.BooleanValue HEAVY_BOMB_BAY_DESTROY_BLOCKS;
 
+    // Homing Rocket Config
+    public static final ForgeConfigSpec.ConfigValue<String> HOMING_ROCKET_AMMO;
+    public static final ForgeConfigSpec.IntValue HOMING_ROCKET_AMMO_CONSUMPTION;
+    public static final ForgeConfigSpec.DoubleValue HOMING_ROCKET_COOLDOWN;
+    public static final ForgeConfigSpec.IntValue HOMING_ROCKET_DAMAGE;
+    public static final ForgeConfigSpec.DoubleValue HOMING_ROCKET_EXPLOSION_POWER;
+
     static {
         BUILDER.push("machine_gun");
         MACHINE_GUN_AMMO = BUILDER
@@ -85,6 +92,24 @@ public class ModConfig {
         HEAVY_BOMB_BAY_DESTROY_BLOCKS = BUILDER
                 .comment("Whether explosion destroys blocks")
                 .define("destroy_blocks", true);
+        BUILDER.pop();
+
+        BUILDER.push("homing_rocket");
+        HOMING_ROCKET_AMMO = BUILDER
+                .comment("Ammo item ID for Homing Rocket Launcher")
+                .define("ammo", "aggressiveaircraft:homing_rocket_ammo");
+        HOMING_ROCKET_AMMO_CONSUMPTION = BUILDER
+                .comment("Ammo consumption per shot")
+                .defineInRange("ammo_consumption", 1, 1, 64);
+        HOMING_ROCKET_COOLDOWN = BUILDER
+                .comment("Cooldown time in seconds")
+                .defineInRange("cooldown", 5.0, 0.0, 60.0);
+        HOMING_ROCKET_DAMAGE = BUILDER
+                .comment("Direct hit damage")
+                .defineInRange("damage", 200, 1, 500);
+        HOMING_ROCKET_EXPLOSION_POWER = BUILDER
+                .comment("Explosion power on impact")
+                .defineInRange("explosion_power", 2.0, 0.0, 10.0);
         BUILDER.pop();
 
         SPEC = BUILDER.build();
