@@ -39,6 +39,11 @@ public class ModConfig {
     public static final ForgeConfigSpec.IntValue HOMING_ROCKET_DAMAGE;
     public static final ForgeConfigSpec.DoubleValue HOMING_ROCKET_EXPLOSION_POWER;
 
+    // Cluster Dispenser Config
+    public static final ForgeConfigSpec.ConfigValue<String> CLUSTER_DISPENSER_AMMO;
+    public static final ForgeConfigSpec.IntValue CLUSTER_DISPENSER_AMMO_CONSUMPTION;
+    public static final ForgeConfigSpec.DoubleValue CLUSTER_DISPENSER_COOLDOWN;
+
     static {
         BUILDER.push("machine_gun");
         MACHINE_GUN_AMMO = BUILDER
@@ -110,6 +115,18 @@ public class ModConfig {
         HOMING_ROCKET_EXPLOSION_POWER = BUILDER
                 .comment("Explosion power on impact")
                 .defineInRange("explosion_power", 2.0, 0.0, 10.0);
+        BUILDER.pop();
+
+        BUILDER.push("cluster_dispenser");
+        CLUSTER_DISPENSER_AMMO = BUILDER
+                .comment("Ammo item ID for Cluster Dispenser")
+                .define("ammo", "aggressiveaircraft:cluster_bomb");
+        CLUSTER_DISPENSER_AMMO_CONSUMPTION = BUILDER
+                .comment("Ammo consumption per drop")
+                .defineInRange("ammo_consumption", 1, 1, 64);
+        CLUSTER_DISPENSER_COOLDOWN = BUILDER
+                .comment("Cooldown time in seconds")
+                .defineInRange("cooldown", 30.0, 0.0, 300.0);
         BUILDER.pop();
 
         SPEC = BUILDER.build();

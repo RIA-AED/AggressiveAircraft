@@ -14,5 +14,9 @@
   "entity.aggressiveaircraft.homing_rocket": "Homing Rocket",
   "item.aggressiveaircraft.homing_rocket_launcher": "Homing Rocket Launcher",
   "item.aggressiveaircraft.homing_rocket_launcher.description": "Infrared homing rocket launcher that locks onto targets before firing",
-  "item.aggressiveaircraft.homing_rocket_ammo": "Homing Rocket"
+  "item.aggressiveaircraft.homing_rocket_ammo": "Homing Rocket",
+  "entity.aggressiveaircraft.cluster_dispenser": "Cluster Dispenser",
+  "item.aggressiveaircraft.cluster_dispenser": "Cluster Dispenser",
+  "item.aggressiveaircraft.cluster_dispenser.description": "Aerial dispenser that releases explosive submunitions",
+  "item.aggressiveaircraft.cluster_bomb": "Cluster Bomb"
 }

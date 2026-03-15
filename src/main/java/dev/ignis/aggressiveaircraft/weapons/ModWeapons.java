@@ -22,5 +22,9 @@ public class ModWeapons {
                 ResourceLocation.tryBuild(AggressiveAircraft.MODID, "homing_rocket_launcher"),
                 HomingRocketLauncher::new
         );
+        WeaponRegistry.register(
+                ResourceLocation.tryBuild(AggressiveAircraft.MODID, "cluster_dispenser"),
+                ClusterDispenser::new
+        );
     }
 }

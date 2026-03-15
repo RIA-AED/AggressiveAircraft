@@ -35,6 +35,12 @@ public class ModItems {
     public static final RegistryObject<Item> HOMING_ROCKET_AMMO = ITEMS.register("homing_rocket_ammo",
             () -> new Item(new Item.Properties().stacksTo(4)));
 
+    public static final RegistryObject<Item> CLUSTER_DISPENSER = ITEMS.register("cluster_dispenser",
+            () -> new WeaponItem(new Item.Properties().stacksTo(1), immersive_aircraft.entity.misc.WeaponMount.Type.DROP));
+
+    public static final RegistryObject<Item> CLUSTER_BOMB = ITEMS.register("cluster_bomb",
+            () -> new Item(new Item.Properties().stacksTo(2)));
+
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
     }

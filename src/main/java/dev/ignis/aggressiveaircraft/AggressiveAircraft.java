@@ -1,6 +1,7 @@
 package dev.ignis.aggressiveaircraft;
 
 import com.mojang.logging.LogUtils;
+import dev.ignis.aggressiveaircraft.client.render.ClusterDispenserRenderer;
 import dev.ignis.aggressiveaircraft.client.render.ExplosiveBulletRenderer;
 import dev.ignis.aggressiveaircraft.client.render.HeavyBombRenderer;
 import dev.ignis.aggressiveaircraft.client.render.HomingRocketRenderer;
@@ -64,6 +65,8 @@ public class AggressiveAircraft {
             event.accept(ModItems.BOMB_200LB.get());
             event.accept(ModItems.HOMING_ROCKET_LAUNCHER.get());
             event.accept(ModItems.HOMING_ROCKET_AMMO.get());
+            event.accept(ModItems.CLUSTER_DISPENSER.get());
+            event.accept(ModItems.CLUSTER_BOMB.get());
         }
     }
 
@@ -81,6 +84,7 @@ public class AggressiveAircraft {
             event.registerEntityRenderer(ModEntities.EXPLOSIVE_BULLET.get(), ExplosiveBulletRenderer::new);
             event.registerEntityRenderer(ModEntities.HEAVY_BOMB.get(), HeavyBombRenderer::new);
             event.registerEntityRenderer(ModEntities.HOMING_ROCKET.get(), HomingRocketRenderer::new);
+            event.registerEntityRenderer(ModEntities.CLUSTER_DISPENSER.get(), ClusterDispenserRenderer::new);
 
             // Register custom animation variables
             BBAnimationVariables.register("weapon_ready");
@@ -101,6 +105,10 @@ public class AggressiveAircraft {
             WeaponRendererRegistry.register(
                     ResourceLocation.tryBuild(MODID, "homing_rocket_launcher"),
                     new SimpleWeaponRenderer(ResourceLocation.tryBuild(MODID, "homing_rocket_launcher"))
+            );
+            WeaponRendererRegistry.register(
+                    ResourceLocation.tryBuild(MODID, "cluster_dispenser"),
+                    new SimpleWeaponRenderer(ResourceLocation.tryBuild(MODID, "cluster_dispenser"))
             );
         }
     }
