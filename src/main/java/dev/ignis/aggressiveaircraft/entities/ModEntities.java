@@ -32,7 +32,7 @@ public class ModEntities {
             () -> EntityType.Builder.<HomingRocketEntity>of(HomingRocketEntity::new, MobCategory.MISC)
                     .sized(0.3f, 0.3f)
                     .clientTrackingRange(10)
-                    .updateInterval(10)
+                    .updateInterval(1)  // 每 tick 同步，确保流畅
                     .fireImmune()
                     .build(ResourceLocation.tryBuild(AggressiveAircraft.MODID, "homing_rocket").toString()));
 

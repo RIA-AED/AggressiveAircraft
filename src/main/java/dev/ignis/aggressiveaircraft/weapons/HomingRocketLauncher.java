@@ -126,8 +126,10 @@ public class HomingRocketLauncher extends BulletWeapon {
         rocket.setOwner(shooter);
         rocket.setPos(position.x(), position.y(), position.z());
 
-        if (lockedTarget != null && lockedTarget.isAlive()) {
-            rocket.setTarget(lockedTarget);
+        // 服务端重新锁定目标（客户端锁定仅用于判断是否可发射）
+        LivingEntity target = findTarget(direction);
+        if (target != null && target.isAlive()) {
+            rocket.setTarget(target);
         }
 
         rocket.shoot(direction.x(), direction.y(), direction.z(), getVelocity(), getInaccuracy());

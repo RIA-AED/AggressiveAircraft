@@ -1,6 +1,7 @@
 package dev.ignis.aggressiveaircraft.entities;
 
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -14,7 +15,7 @@ import net.minecraft.world.phys.Vec3;
 public class HomingRocketEntity extends AbstractHurtingProjectile {
     private static final double MAX_LIFETIME = 200; // 10秒 = 200 ticks
     private static final double TURN_SPEED = 0.12;
-    private static final double SPEED = 1.8;
+    private static final double SPEED = 2; // 40格/秒 = 2格/tick
 
     private float damage = 200.0f;
     private float explosionPower = 2.0f;
@@ -52,6 +53,12 @@ public class HomingRocketEntity extends AbstractHurtingProjectile {
                     0.0, 0.05, 0.0
                 );
             }
+            // 客户端也保持恒定速度，避免与服务端不同步
+            Vec3 currentVel = this.getDeltaMovement();
+            if (currentVel.lengthSqr() > 0.001) {
+                Vec3 normalized = currentVel.normalize();
+                this.setDeltaMovement(normalized.x * SPEED, normalized.y * SPEED, normalized.z * SPEED);
+            }
         }
 
         if (!this.level().isClientSide) {
@@ -62,15 +69,16 @@ public class HomingRocketEntity extends AbstractHurtingProjectile {
                 return;
             }
 
-            // 保持恒定速度，覆盖原版的阻力衰减
-            Vec3 currentVel = this.getDeltaMovement();
-            if (currentVel.lengthSqr() > 0.001) {
-                Vec3 normalized = currentVel.normalize();
-                this.setDeltaMovement(normalized.x * SPEED, normalized.y * SPEED, normalized.z * SPEED);
-            }
-
             if (target != null && target.isAlive()) {
+                // 有目标时制导飞行，guideToTarget 内部已设置 SPEED 速度
                 guideToTarget(target.position());
+            } else {
+                // 无目标时保持当前方向恒定速度，覆盖原版阻力衰减
+                Vec3 currentVel = this.getDeltaMovement();
+                if (currentVel.lengthSqr() > 0.001) {
+                    Vec3 normalized = currentVel.normalize();
+                    this.setDeltaMovement(normalized.x * SPEED, normalized.y * SPEED, normalized.z * SPEED);
+                }
             }
         }
 
@@ -97,8 +105,14 @@ public class HomingRocketEntity extends AbstractHurtingProjectile {
 
     @Override
     protected void onHitEntity(EntityHitResult result) {
-        if (canHitEntity(result.getEntity())) {
-            result.getEntity().hurt(level().damageSources().thrown(this, this.getOwner()), damage);
+        Entity target = result.getEntity();
+        if (canHitEntity(target)) {
+            // 无视无敌帧直接造成伤害
+            if (target instanceof LivingEntity living) {
+                living.hurtTime = 0;  // 重置无敌帧计时器
+                living.invulnerableTime = 0;  // 重置无敌时间
+            }
+            target.hurt(level().damageSources().thrown(this, this.getOwner()), damage);
         }
         explode();
         this.discard();
@@ -151,5 +165,19 @@ public class HomingRocketEntity extends AbstractHurtingProjectile {
         }
         Entity entity = this.getOwner();
         return entity == null || !entity.isPassengerOfSameVehicle(target);
+    }
+
+    @Override
+    public void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        tag.putInt("Lifetime", lifetime);
+    }
+
+    @Override
+    public void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        if (tag.contains("Lifetime")) {
+            lifetime = tag.getInt("Lifetime");
+        }
     }
 }
