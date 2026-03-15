@@ -5,21 +5,30 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.projectile.AbstractHurtingProjectile;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.Comparator;
+import java.util.List;
+
 public class HomingRocketEntity extends AbstractHurtingProjectile {
     private static final double MAX_LIFETIME = 200; // 10秒 = 200 ticks
     private static final double TURN_SPEED = 0.12;
     private static final double SPEED = 2; // 40格/秒 = 2格/tick
+    private static final int MID_FLIGHT_SCAN_INTERVAL = 10; // 每10tick扫描一次
+    private static final double MID_FLIGHT_SCAN_DISTANCE = 25.0; // 前方25格
+    private static final double MID_FLIGHT_SCAN_RADIUS = 25.0; // 搜索半径25格
 
     private float damage = 200.0f;
     private float explosionPower = 2.0f;
     private int lifetime = 0;
+    private int midFlightScanTimer = 0;
     private LivingEntity target = null;
 
     public HomingRocketEntity(EntityType<? extends HomingRocketEntity> entityType, Level level) {
@@ -79,10 +88,67 @@ public class HomingRocketEntity extends AbstractHurtingProjectile {
                     Vec3 normalized = currentVel.normalize();
                     this.setDeltaMovement(normalized.x * SPEED, normalized.y * SPEED, normalized.z * SPEED);
                 }
+
+                // 无目标时，每10tick尝试二次锁定
+                midFlightScanTimer++;
+                if (midFlightScanTimer >= MID_FLIGHT_SCAN_INTERVAL) {
+                    midFlightScanTimer = 0;
+                    tryMidFlightLock();
+                }
             }
         }
 
         super.tick();
+    }
+
+    private void tryMidFlightLock() {
+        Vec3 currentPos = this.position();
+        Vec3 currentVel = this.getDeltaMovement();
+        if (currentVel.lengthSqr() < 0.001) return;
+
+        // 计算前方25格处的点
+        Vec3 direction = currentVel.normalize();
+        Vec3 scanCenter = currentPos.add(direction.x * MID_FLIGHT_SCAN_DISTANCE,
+                                         direction.y * MID_FLIGHT_SCAN_DISTANCE,
+                                         direction.z * MID_FLIGHT_SCAN_DISTANCE);
+
+        // 搜索25格半径内的敌对实体
+        AABB searchBox = new AABB(
+            scanCenter.x - MID_FLIGHT_SCAN_RADIUS, scanCenter.y - MID_FLIGHT_SCAN_RADIUS, scanCenter.z - MID_FLIGHT_SCAN_RADIUS,
+            scanCenter.x + MID_FLIGHT_SCAN_RADIUS, scanCenter.y + MID_FLIGHT_SCAN_RADIUS, scanCenter.z + MID_FLIGHT_SCAN_RADIUS
+        );
+
+        List<LivingEntity> entities = this.level().getEntitiesOfClass(LivingEntity.class, searchBox, this::isValidMidFlightTarget);
+
+        if (!entities.isEmpty()) {
+            // 选择血量最多的目标
+            target = entities.stream()
+                .max(Comparator.comparingDouble(LivingEntity::getHealth))
+                .orElse(null);
+        }
+    }
+
+    private boolean isValidMidFlightTarget(LivingEntity entity) {
+        if (!entity.isAlive() || !entity.isPickable()) {
+            return false;
+        }
+
+        // 敌对生物判断
+        if (entity.getMobType() == net.minecraft.world.entity.MobType.UNDEAD
+            || entity.getMobType() == net.minecraft.world.entity.MobType.ARTHROPOD
+            || entity.getMobType() == net.minecraft.world.entity.MobType.ILLAGER) {
+            // 是敌对生物
+        } else if (entity.getType().getCategory().isFriendly()) {
+            return false;
+        }
+
+        // 不能是发射者或其乘客
+        Entity owner = this.getOwner();
+        if (owner != null && entity.isPassengerOfSameVehicle(owner)) {
+            return false;
+        }
+
+        return true;
     }
 
     private void guideToTarget(Vec3 targetPosition) {

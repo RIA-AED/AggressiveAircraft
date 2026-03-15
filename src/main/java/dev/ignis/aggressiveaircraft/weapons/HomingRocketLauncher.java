@@ -8,6 +8,9 @@ import immersive_aircraft.cobalt.network.NetworkHandler;
 import immersive_aircraft.entity.weapon.BulletWeapon;
 import immersive_aircraft.network.c2s.FireMessage;
 import immersive_aircraft.resources.bbmodel.BBAnimationVariables;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobType;
@@ -27,9 +30,15 @@ import java.util.Map;
 public class HomingRocketLauncher extends BulletWeapon {
     private static final double MAX_RANGE = 128.0;
     private static final double SEARCH_RADIUS = 32.0;
+    private static final int LOCK_SCAN_INTERVAL = 5; // 每5tick扫描一次
+    private static final float LOCK_HEALTH_THRESHOLD = 50.0f; // 血量阈值50
+    private static final SoundEvent LOCK_SOUND = SoundEvent.createVariableRangeEvent(
+            ResourceLocation.tryBuild("minecraft", "block.note_block.xylophone"));
 
     private float cooldown = 0.0f;
     private LivingEntity lockedTarget = null;
+    private boolean clientLockState = false; // 客户端锁定状态
+    private int lockScanTimer = 0; // 扫描计时器
 
     public HomingRocketLauncher(VehicleEntity entity, ItemStack stack, WeaponMount mount, int slot) {
         super(entity, stack, mount, slot);
@@ -143,6 +152,30 @@ public class HomingRocketLauncher extends BulletWeapon {
         if (cooldown < -cooldownSeconds) {
             cooldown = -cooldownSeconds;
         }
+
+        // 客户端：每5tick扫描目标，播放锁定音效
+        if (getEntity().level().isClientSide) {
+            lockScanTimer++;
+            if (lockScanTimer >= LOCK_SCAN_INTERVAL) {
+                lockScanTimer = 0;
+                LivingEntity target = findTarget(getDirection());
+                clientLockState = target != null && target.getHealth() >= LOCK_HEALTH_THRESHOLD;
+            }
+
+            // 锁定状态下每tick播放音效
+            if (clientLockState) {
+                playLockSound();
+            }
+        }
+    }
+
+    private void playLockSound() {
+        // 为所有乘客播放音效
+        getEntity().getPassengers().forEach(passenger -> {
+            if (passenger instanceof net.minecraft.world.entity.player.Player player) {
+                player.playSound(LOCK_SOUND, 0.2f, 0.5f);
+            }
+        });
     }
 
     @Override
@@ -163,11 +196,9 @@ public class HomingRocketLauncher extends BulletWeapon {
 
         Vector3f direction = getDirection();
 
-        // 尝试锁定目标，只有锁定成功才发射
-        if (tryLockTarget(direction)) {
-            cooldown = cooldownSeconds;
-            NetworkHandler.sendToServer(new FireMessage(getSlot(), index, direction));
-        }
+        // 总是开火，不再依赖锁定状态
+        cooldown = cooldownSeconds;
+        NetworkHandler.sendToServer(new FireMessage(getSlot(), index, direction));
     }
 
     private Vector3f getDirection() {
