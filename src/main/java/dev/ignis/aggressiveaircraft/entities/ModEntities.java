@@ -40,7 +40,7 @@ public class ModEntities {
             () -> EntityType.Builder.<ClusterDispenserEntity>of(ClusterDispenserEntity::new, MobCategory.MISC)
                     .sized(0.5f, 0.5f)
                     .clientTrackingRange(10)
-                    .updateInterval(2)
+                    .updateInterval(1)  // 每 tick 同步，确保流畅
                     .fireImmune()
                     .build(ResourceLocation.tryBuild(AggressiveAircraft.MODID, "cluster_dispenser").toString()));
 

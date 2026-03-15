@@ -1,7 +1,10 @@
 package dev.ignis.aggressiveaircraft.entities;
 
+import dev.ignis.aggressiveaircraft.AggressiveAircraft;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.projectile.AbstractHurtingProjectile;
@@ -14,17 +17,20 @@ import org.joml.Vector3f;
 import java.util.Random;
 
 public class ClusterDispenserEntity extends AbstractHurtingProjectile {
-    private static final double MAX_LIFETIME = 100; // 5秒 = 100 ticks
-    private static final double DESCENT_START_TIME = 40; // 2秒后（60 ticks剩余）开始俯冲转为水平
-    private static final double FIRE_START_TIME = 40; // 后3秒 = 60 ticks，从第40 tick开始发射
-    private static final int BULLETS_PER_SECOND = 20;
-    private static final double FIRE_INTERVAL = 20.0 / BULLETS_PER_SECOND; // 每多少tick发射一发
+    private static final double MAX_LIFETIME = 60; // 3秒 = 60 ticks（1秒飞行 + 2秒布撒）
+    private static final double DESCENT_START_TIME = 20; // 1秒后开始转为水平
+    private static final double FIRE_START_TIME = 20; // 1秒后开始布撒
+    private static final double FIRE_END_TIME = 60; // 3秒后结束布撒（布撒持续2秒）
+    private static final double FIRE_INTERVAL = 1.0; // 每tick发射1发
     private static final double HORIZONTAL_SPEED = 2.0; // 水平飞行速度
 
     private int lifetime = 0;
     private double fireTimer = 0;
     private boolean hasFired = false;
     private Vec3 inheritedVelocity = Vec3.ZERO;
+    
+    // 调试用：记录是否已设置继承速度
+    private boolean velocitySet = false;
     private final Random random = new Random();
 
     public ClusterDispenserEntity(EntityType<? extends ClusterDispenserEntity> entityType, Level level) {
@@ -33,10 +39,15 @@ public class ClusterDispenserEntity extends AbstractHurtingProjectile {
 
     public void setInheritedVelocity(Vec3 velocity) {
         this.inheritedVelocity = velocity;
+        this.velocitySet = true;
+        System.out.println("[ClusterDispenser] Inherited velocity set: " + velocity);
     }
 
     @Override
     public void tick() {
+        // 先调用父类tick处理运动（客户端和服务端都需要）
+        super.tick();
+
         if (this.level().isClientSide) {
             // 烟雾尾迹
             for (int i = 0; i < 3; i++) {
@@ -51,36 +62,40 @@ public class ClusterDispenserEntity extends AbstractHurtingProjectile {
                     0.0, 0.02, 0.0
                 );
             }
+            return;
         }
 
-        if (!this.level().isClientSide) {
-            lifetime++;
+        // 服务端逻辑
+        lifetime++;
 
-            // 超过5秒爆炸
-            if (lifetime > MAX_LIFETIME) {
-                explode();
-                this.discard();
-                return;
-            }
-
-            // 飞行轨迹控制
-            updateFlightPath();
-
-            // 发射子弹阶段（后3秒）
-            if (lifetime >= FIRE_START_TIME) {
-                fireTimer += 1.0;
-                while (fireTimer >= FIRE_INTERVAL) {
-                    fireTimer -= FIRE_INTERVAL;
-                    fireBullet();
-                }
-            }
+        // 超过5秒爆炸
+        if (lifetime > MAX_LIFETIME) {
+            explode();
+            this.discard();
+            return;
         }
 
-        super.tick();
+        // 飞行轨迹控制 - 在父类tick之后设置速度，确保下一tick使用新速度
+        updateFlightPath();
+
+        // 发射子弹阶段（后3秒）
+        if (lifetime >= FIRE_START_TIME) {
+            fireTimer += 1.0;
+            while (fireTimer >= FIRE_INTERVAL) {
+                fireTimer -= FIRE_INTERVAL;
+                fireBullet();
+            }
+        }
     }
 
     private void updateFlightPath() {
         Vec3 currentVel = this.getDeltaMovement();
+        
+        // 调试输出
+        if (lifetime == 0 || lifetime == 1) {
+            AggressiveAircraft.LOGGER.debug("[ClusterDispenser] tick=" + lifetime + " velocitySet=" + velocitySet
+                + " inherited=" + inheritedVelocity + " currentVel=" + currentVel);
+        }
 
         if (lifetime < DESCENT_START_TIME) {
             // 前2秒：继承飞机速度，逐渐减小垂直速度
@@ -132,6 +147,10 @@ public class ClusterDispenserEntity extends AbstractHurtingProjectile {
 
         bullet.shoot(scatterX, -1.0, scatterZ, (float) downwardSpeed, 0.0f);
         this.level().addFreshEntity(bullet);
+        
+        // 播放拾起物品的声音，音量2.0（更大声）
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(), 
+            SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 2.0f, 1.0f);
     }
 
     private void explode() {
@@ -206,5 +225,11 @@ public class ClusterDispenserEntity extends AbstractHurtingProjectile {
 
     public float getRoll(float tickDelta) {
         return 0.0f; // 布撒器无滚动
+    }
+
+    @Override
+    public void lerpMotion(double x, double y, double z) {
+        // 覆盖默认的插值运动，直接使用服务器速度
+        this.setDeltaMovement(x, y, z);
     }
 }

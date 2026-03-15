@@ -1,5 +1,6 @@
 package dev.ignis.aggressiveaircraft.entities;
 
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -7,6 +8,7 @@ import net.minecraft.world.entity.projectile.AbstractHurtingProjectile;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 
 public class ExplosiveBulletEntity extends AbstractHurtingProjectile {
     private float damage = 30.0f;
@@ -108,5 +110,45 @@ public class ExplosiveBulletEntity extends AbstractHurtingProjectile {
             explode();
             discard();
         }
+        
+        // 客户端：生成拖尾烟雾
+        if (this.level().isClientSide) {
+            Vec3 motion = this.getDeltaMovement();
+            double speed = motion.length();
+            
+            // 根据速度生成不同密度的烟雾
+            int particleCount = speed > 1.0 ? 2 : 1;
+            for (int i = 0; i < particleCount; i++) {
+                // 在子弹后方生成烟雾
+                double offsetX = (this.random.nextDouble() - 0.5) * 0.2;
+                double offsetY = (this.random.nextDouble() - 0.5) * 0.2;
+                double offsetZ = (this.random.nextDouble() - 0.5) * 0.2;
+                
+                // 烟雾位置稍微向后偏移
+                double smokeX = this.getX() - motion.x * 0.3 + offsetX;
+                double smokeY = this.getY() - motion.y * 0.3 + offsetY;
+                double smokeZ = this.getZ() - motion.z * 0.3 + offsetZ;
+                
+                this.level().addParticle(
+                    ParticleTypes.SMOKE,
+                    smokeX, smokeY, smokeZ,
+                    -motion.x * 0.1, -motion.y * 0.1 + 0.02, -motion.z * 0.1
+                );
+            }
+            
+            // 偶尔生成火焰粒子
+            if (this.random.nextInt(3) == 0) {
+                this.level().addParticle(
+                    ParticleTypes.FLAME,
+                    this.getX(), this.getY(), this.getZ(),
+                    0, 0, 0
+                );
+            }
+        }
+    }
+
+    @Override
+    public boolean isPushable() {
+        return false; // 禁止被爆炸等外力推动
     }
 }

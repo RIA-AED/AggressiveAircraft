@@ -75,7 +75,7 @@ public class ModConfig {
                 .defineInRange("fire_rate", 1.5, 0.1, 10.0);
         HEAVY_CANNON_EXPLOSION_POWER = BUILDER
                 .comment("Explosion power on impact")
-                .defineInRange("explosion_power", 2.0, 0.0, 20.0);
+                .defineInRange("explosion_power", 3.0, 0.0, 20.0);
         HEAVY_CANNON_DESTROY_BLOCKS = BUILDER
                 .comment("Whether explosion destroys blocks")
                 .define("destroy_blocks", false);

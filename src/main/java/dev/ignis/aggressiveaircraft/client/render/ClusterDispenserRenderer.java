@@ -19,8 +19,8 @@ import org.joml.Math;
 
 public class ClusterDispenserRenderer extends EntityRenderer<ClusterDispenserEntity> {
     // 模型ID：命名空间:路径（不含.bbmodel后缀）
-    // 实际路径：assets/aggressiveaircraft/objects/entity/cluster_dispenser_entity.bbmodel
-    private static final ResourceLocation MODEL_ID = ResourceLocation.tryBuild(AggressiveAircraft.MODID, "entity/cluster_dispenser_entity");
+    // 实际路径：assets/aggressiveaircraft/objects/cluster_dispenser_entity.bbmodel
+    private static final ResourceLocation MODEL_ID = ResourceLocation.tryBuild(AggressiveAircraft.MODID, "cluster_dispenser_entity");
 
     public ClusterDispenserRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -30,6 +30,8 @@ public class ClusterDispenserRenderer extends EntityRenderer<ClusterDispenserEnt
     public void render(ClusterDispenserEntity entity, float entityYaw, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
         BBModel bbModel = BBModelLoader.MODELS.get(MODEL_ID);
         if (bbModel == null) {
+            // 模型未加载，渲染一个调试立方体
+            renderDebugCube(entity, entityYaw, partialTicks, matrixStack, buffer, packedLight);
             return;
         }
 
@@ -108,6 +110,50 @@ public class ClusterDispenserRenderer extends EntityRenderer<ClusterDispenserEnt
                 vertexConsumer.endVertex();
             }
         }
+    }
+
+    private void renderDebugCube(ClusterDispenserEntity entity, float entityYaw, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
+        matrixStack.pushPose();
+        
+        // 位置和旋转
+        matrixStack.mulPose(Axis.YP.rotationDegrees(-entityYaw));
+        matrixStack.mulPose(Axis.XP.rotationDegrees(entity.getViewXRot(partialTicks)));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(entity.getRoll(partialTicks)));
+        
+        // 渲染一个红色立方体作为调试
+        PoseStack.Pose pose = matrixStack.last();
+        Matrix4f matrix4f = pose.pose();
+        Matrix3f matrix3f = pose.normal();
+
+        @SuppressWarnings("removal")
+        VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.entityCutoutNoCull(
+            new ResourceLocation("minecraft", "textures/block/red_wool.png")
+        ));
+        
+        // 简单的立方体渲染
+        float size = 0.5f;
+        renderBoxFace(vertexConsumer, matrix4f, matrix3f, packedLight, size, 1.0f, 0.0f, 0.0f);
+        
+        matrixStack.popPose();
+        super.render(entity, entityYaw, partialTicks, matrixStack, buffer, packedLight);
+    }
+    
+    private void renderBoxFace(VertexConsumer vc, Matrix4f pm, Matrix3f nm, int light, float s, float r, float g, float b) {
+        // 前面
+        vertex(vc, pm, nm, light, -s, -s, s, r, g, b);
+        vertex(vc, pm, nm, light, s, -s, s, r, g, b);
+        vertex(vc, pm, nm, light, s, s, s, r, g, b);
+        vertex(vc, pm, nm, light, -s, s, s, r, g, b);
+    }
+    
+    private void vertex(VertexConsumer vc, Matrix4f pm, Matrix3f nm, int light, float x, float y, float z, float r, float g, float b) {
+        vc.vertex(pm, x, y, z)
+            .color((int)(r*255), (int)(g*255), (int)(b*255), 255)
+            .uv(0, 0)
+            .overlayCoords(OverlayTexture.NO_OVERLAY)
+            .uv2(light)
+            .normal(nm, 0, 0, 1)
+            .endVertex();
     }
 
     @Override
