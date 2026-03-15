@@ -21,6 +21,9 @@ import org.valkyrienskies.mod.api.ValkyrienSkies;
 
 @Mixin(Entity.class)
 public abstract class AircraftEntityGroundPitchMixin {
+
+    //todo 将俯仰修复逻辑注入客户端isGround实现
+
     @Unique
     private float aggressiveAircraft$yRotStored = 0;
 
