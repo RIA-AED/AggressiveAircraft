@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.Vec3;
 import org.joml.*;
 import net.minecraft.util.Mth;
 import org.joml.Math;
@@ -37,7 +38,7 @@ public class ClusterDispenserRenderer extends EntityRenderer<ClusterDispenserEnt
 
         matrixStack.pushPose();
 
-        // 位置和旋转
+        // 使用实体自身的旋转角度（标准 Minecraft 实体渲染方式）
         matrixStack.mulPose(Axis.YP.rotationDegrees(-entityYaw));
         matrixStack.mulPose(Axis.XP.rotationDegrees(entity.getViewXRot(partialTicks)));
         matrixStack.mulPose(Axis.ZP.rotationDegrees(entity.getRoll(partialTicks)));

@@ -62,6 +62,12 @@ public class ClusterDispenserEntity extends AbstractHurtingProjectile {
                     0.0, 0.02, 0.0
                 );
             }
+            
+            // 客户端：只在刚创建时同步载具角度（避免初始朝向错误）
+            if (this.tickCount < 5) {
+                syncRotationFromVehicle();
+            }
+            
             return;
         }
 
@@ -98,13 +104,16 @@ public class ClusterDispenserEntity extends AbstractHurtingProjectile {
         }
 
         if (lifetime < DESCENT_START_TIME) {
-            // 前2秒：继承飞机速度，逐渐减小垂直速度
+            // 前1秒：保持当前速度（从BulletWeapon.fire()继承的飞机速度）
+            // 逐渐减小垂直速度，让布撒器趋于水平
             double progress = lifetime / DESCENT_START_TIME;
-            double targetY = inheritedVelocity.y * (1.0 - progress * 0.5); // 垂直速度衰减50%
+            // 使用当前速度作为基础，而不是inheritedVelocity
+            // 这样可以确保方向正确
+            double targetY = currentVel.y * (1.0 - progress * 0.3); // 垂直速度衰减30%
             this.setDeltaMovement(
-                inheritedVelocity.x,
+                currentVel.x,
                 targetY,
-                inheritedVelocity.z
+                currentVel.z
             );
         } else {
             // 后3秒：转为水平飞行
@@ -225,6 +234,42 @@ public class ClusterDispenserEntity extends AbstractHurtingProjectile {
 
     public float getRoll(float tickDelta) {
         return 0.0f; // 布撒器无滚动
+    }
+    
+    /**
+     * 从载具同步旋转角度（用于初始朝向）
+     */
+    private void syncRotationFromVehicle() {
+        Entity owner = this.getOwner();
+        if (owner == null) return;
+        
+        // 获取玩家乘坐的载具
+        Entity vehicle = owner.getVehicle();
+        if (vehicle == null) return;
+        
+        // 同步载具的旋转角度
+        this.setYRot(vehicle.getYRot());
+        this.setXRot(vehicle.getXRot());
+        this.yRotO = vehicle.getYRot();
+        this.xRotO = vehicle.getXRot();
+    }
+    
+    /**
+     * 根据速度向量更新实体旋转
+     */
+    private void updateRotation(Vec3 velocity) {
+        // 计算水平方向角度（yaw）
+        double horizontalDist = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+        float yaw = (float) (Math.toDegrees(Math.atan2(velocity.x, velocity.z)));
+        float pitch = (float) (Math.toDegrees(Math.atan2(velocity.y, horizontalDist)));
+        
+        // 设置旋转
+        this.setYRot(yaw);
+        this.setXRot(pitch);
+        
+        // 同步到旧系统
+        this.yRotO = yaw;
+        this.xRotO = pitch;
     }
 
     @Override
