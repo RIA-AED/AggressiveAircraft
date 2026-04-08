@@ -264,4 +264,8 @@ public class HomingRocketEntity extends AbstractHurtingProjectile {
             lifetime = tag.getInt("Lifetime");
         }
     }
+
+    public float getRoll(float tickDelta) {
+        return 0.0f; // 火箭无滚动
+    }
 }
