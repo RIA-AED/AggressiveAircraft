@@ -243,6 +243,11 @@ public class HomingRocketEntity extends AbstractHurtingProjectile {
     }
 
     @Override
+    public boolean ignoreExplosion() {
+        return true; // 忽略爆炸，防止被其他火箭炸飞
+    }
+
+    @Override
     protected boolean canHitEntity(Entity target) {
         if (target.isSpectator() || !target.isAlive() || !target.isPickable()) {
             return false;
