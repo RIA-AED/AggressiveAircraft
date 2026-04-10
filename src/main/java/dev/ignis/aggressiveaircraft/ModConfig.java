@@ -44,6 +44,9 @@ public class ModConfig {
     public static final ForgeConfigSpec.IntValue CLUSTER_DISPENSER_AMMO_CONSUMPTION;
     public static final ForgeConfigSpec.DoubleValue CLUSTER_DISPENSER_COOLDOWN;
 
+    // Inventory Control Config
+    public static final ForgeConfigSpec.DoubleValue INVENTORY_HEIGHT_THRESHOLD;
+
     static {
         BUILDER.push("machine_gun");
         MACHINE_GUN_AMMO = BUILDER
@@ -127,6 +130,12 @@ public class ModConfig {
         CLUSTER_DISPENSER_COOLDOWN = BUILDER
                 .comment("Cooldown time in seconds")
                 .defineInRange("cooldown", 30.0, 0.0, 300.0);
+        BUILDER.pop();
+
+        BUILDER.push("inventory_control");
+        INVENTORY_HEIGHT_THRESHOLD = BUILDER
+                .comment("Height threshold below which inventory can be opened (blocks). Set to 0 to disable.")
+                .defineInRange("height_threshold", 320.0, 0.0, 10000.0);
         BUILDER.pop();
 
         SPEC = BUILDER.build();

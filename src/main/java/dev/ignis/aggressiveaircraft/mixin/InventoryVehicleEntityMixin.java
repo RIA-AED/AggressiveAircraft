@@ -1,5 +1,6 @@
 package dev.ignis.aggressiveaircraft.mixin;
 
+import dev.ignis.aggressiveaircraft.ModConfig;
 import immersive_aircraft.entity.InventoryVehicleEntity;
 import immersive_aircraft.screen.VehicleScreenHandler;
 import net.minecraft.world.InteractionHand;
@@ -16,8 +17,10 @@ public class InventoryVehicleEntityMixin {
     @Inject(method = "m_6096_(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;", at = @At("HEAD"), cancellable = true, remap = false)
     private void preventInventoryOpenWhileFlying(Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
         InventoryVehicleEntity vehicle = (InventoryVehicleEntity) (Object) this;
-        // 如果飞行器不在地面上，阻止打开库存
-        if (!vehicle.onGround() && player.isCrouching()) {
+        double heightThreshold = ModConfig.INVENTORY_HEIGHT_THRESHOLD.get();
+        double currentY = vehicle.getY();
+        // 如果飞行器不在地面上，或者高度低于配置阈值，阻止打开库存
+        if ((!vehicle.onGround() || (heightThreshold > 0 && currentY < heightThreshold)) && player.isCrouching()) {
             cir.setReturnValue(InteractionResult.PASS);
         }
     }
