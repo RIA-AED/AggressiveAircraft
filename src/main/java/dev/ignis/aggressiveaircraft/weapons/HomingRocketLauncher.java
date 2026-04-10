@@ -32,6 +32,7 @@ public class HomingRocketLauncher extends BulletWeapon {
     private static final double SEARCH_RADIUS = 32.0;
     private static final int LOCK_SCAN_INTERVAL = 5; // 每5tick扫描一次
     private static final float LOCK_HEALTH_THRESHOLD = 50.0f; // 血量阈值50
+    private static final String TRACKED_TAG = "airstrikepointers:tracked";
     private static final SoundEvent LOCK_SOUND = SoundEvent.createVariableRangeEvent(
             ResourceLocation.tryBuild("minecraft", "block.note_block.xylophone"));
 
@@ -107,10 +108,26 @@ public class HomingRocketLauncher extends BulletWeapon {
             this::isValidTarget
         );
 
-        return entities.stream()
-            .filter(e -> e.getHealth() >= 25.0f) // 过滤25生命值以下的目标
-            .max(Comparator.comparingDouble(LivingEntity::getHealth))
+        // 过滤25生命值以下的目标
+        List<LivingEntity> validTargets = entities.stream()
+            .filter(e -> e.getHealth() >= 25.0f)
+            .toList();
+
+        if (validTargets.isEmpty()) {
+            return null;
+        }
+
+        // 优先选择带有 airstrikepointers:tracked 标签的目标
+        LivingEntity trackedTarget = validTargets.stream()
+            .filter(e -> e.getPersistentData().getBoolean(TRACKED_TAG))
+            .max(Comparator.comparingDouble(LivingEntity::getMaxHealth))
             .orElse(null);
+
+        // 如果有tracked目标则选择它,否则选择最大生命值的
+        return trackedTarget != null ? trackedTarget
+            : validTargets.stream()
+                .max(Comparator.comparingDouble(LivingEntity::getMaxHealth))
+                .orElse(null);
     }
 
     private boolean isValidTarget(LivingEntity entity) {

@@ -24,6 +24,7 @@ public class HomingRocketEntity extends AbstractHurtingProjectile {
     private static final int MID_FLIGHT_SCAN_INTERVAL = 10; // 每10tick扫描一次
     private static final double MID_FLIGHT_SCAN_DISTANCE = 25.0; // 前方25格
     private static final double MID_FLIGHT_SCAN_RADIUS = 25.0; // 搜索半径25格
+    private static final String TRACKED_TAG = "airstrikepointers:tracked";
 
     private float damage = 200.0f;
     private float explosionPower = 2.0f;
@@ -133,11 +134,24 @@ public class HomingRocketEntity extends AbstractHurtingProjectile {
         List<LivingEntity> entities = this.level().getEntitiesOfClass(LivingEntity.class, searchBox, this::isValidMidFlightTarget);
 
         if (!entities.isEmpty()) {
-            // 选择血量最多的目标，过滤25生命值以下
-            target = entities.stream()
+            // 过滤25生命值以下的目标
+            List<LivingEntity> validTargets = entities.stream()
                 .filter(e -> e.getHealth() >= 25.0f)
-                .max(Comparator.comparingDouble(LivingEntity::getHealth))
-                .orElse(null);
+                .toList();
+
+            if (!validTargets.isEmpty()) {
+                // 优先选择带有 airstrikepointers:tracked 标签的目标
+                LivingEntity trackedTarget = validTargets.stream()
+                    .filter(e -> e.getPersistentData().getBoolean(TRACKED_TAG))
+                    .max(Comparator.comparingDouble(LivingEntity::getMaxHealth))
+                    .orElse(null);
+            
+                // 如果有tracked目标则选择它,否则选择最大生命值的
+                target = trackedTarget != null ? trackedTarget
+                    : validTargets.stream()
+                        .max(Comparator.comparingDouble(LivingEntity::getMaxHealth))
+                        .orElse(null);
+            }
         }
     }
 
