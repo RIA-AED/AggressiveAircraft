@@ -16,6 +16,10 @@ public class InventoryVehicleEntityMixin {
 
     @Inject(method = "m_6096_(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;", at = @At("HEAD"), cancellable = true, remap = false)
     private void preventInventoryOpenWhileFlying(Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
+        // 创造模式玩家始终允许打开物品栏
+        if (player.isCreative()) {
+            return;
+        }
         InventoryVehicleEntity vehicle = (InventoryVehicleEntity) (Object) this;
         double heightThreshold = ModConfig.INVENTORY_HEIGHT_THRESHOLD.get();
         double currentY = vehicle.getY();

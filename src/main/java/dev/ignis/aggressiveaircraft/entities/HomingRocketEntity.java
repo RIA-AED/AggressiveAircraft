@@ -1,5 +1,7 @@
 package dev.ignis.aggressiveaircraft.entities;
 
+import dev.ignis.aggressiveaircraft.utils.TargetSelector;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
@@ -8,13 +10,13 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.projectile.AbstractHurtingProjectile;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.Comparator;
 import java.util.List;
 
 public class HomingRocketEntity extends AbstractHurtingProjectile {
@@ -119,13 +121,11 @@ public class HomingRocketEntity extends AbstractHurtingProjectile {
         Vec3 currentVel = this.getDeltaMovement();
         if (currentVel.lengthSqr() < 0.001) return;
 
-        // 计算前方25格处的点
         Vec3 direction = currentVel.normalize();
         Vec3 scanCenter = currentPos.add(direction.x * MID_FLIGHT_SCAN_DISTANCE,
                                          direction.y * MID_FLIGHT_SCAN_DISTANCE,
                                          direction.z * MID_FLIGHT_SCAN_DISTANCE);
 
-        // 搜索25格半径内的敌对实体
         AABB searchBox = new AABB(
             scanCenter.x - MID_FLIGHT_SCAN_RADIUS, scanCenter.y - MID_FLIGHT_SCAN_RADIUS, scanCenter.z - MID_FLIGHT_SCAN_RADIUS,
             scanCenter.x + MID_FLIGHT_SCAN_RADIUS, scanCenter.y + MID_FLIGHT_SCAN_RADIUS, scanCenter.z + MID_FLIGHT_SCAN_RADIUS
@@ -133,26 +133,7 @@ public class HomingRocketEntity extends AbstractHurtingProjectile {
 
         List<LivingEntity> entities = this.level().getEntitiesOfClass(LivingEntity.class, searchBox, this::isValidMidFlightTarget);
 
-        if (!entities.isEmpty()) {
-            // 过滤25生命值以下的目标
-            List<LivingEntity> validTargets = entities.stream()
-                .filter(e -> e.getHealth() >= 25.0f)
-                .toList();
-
-            if (!validTargets.isEmpty()) {
-                // 优先选择带有 airstrikepointers:tracked 标签的目标
-                LivingEntity trackedTarget = validTargets.stream()
-                    .filter(e -> e.getPersistentData().getBoolean(TRACKED_TAG))
-                    .max(Comparator.comparingDouble(LivingEntity::getMaxHealth))
-                    .orElse(null);
-            
-                // 如果有tracked目标则选择它,否则选择最大生命值的
-                target = trackedTarget != null ? trackedTarget
-                    : validTargets.stream()
-                        .max(Comparator.comparingDouble(LivingEntity::getMaxHealth))
-                        .orElse(null);
-            }
-        }
+        target = TargetSelector.selectTarget(this.level(), scanCenter, currentPos, entities, this);
     }
 
     private boolean isValidMidFlightTarget(LivingEntity entity) {

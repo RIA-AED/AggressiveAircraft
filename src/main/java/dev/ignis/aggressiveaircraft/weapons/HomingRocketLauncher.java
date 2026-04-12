@@ -2,6 +2,7 @@ package dev.ignis.aggressiveaircraft.weapons;
 
 import dev.ignis.aggressiveaircraft.ModConfig;
 import dev.ignis.aggressiveaircraft.entities.ModEntities;
+import dev.ignis.aggressiveaircraft.utils.TargetSelector;
 import immersive_aircraft.entity.VehicleEntity;
 import immersive_aircraft.entity.misc.WeaponMount;
 import immersive_aircraft.cobalt.network.NetworkHandler;
@@ -23,7 +24,6 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -86,10 +86,8 @@ public class HomingRocketLauncher extends BulletWeapon {
 
         Vec3 scanCenter;
         if (blockHit.getType() != HitResult.Type.MISS) {
-            // 命中方块，在命中点扫描
             scanCenter = blockHit.getLocation();
         } else {
-            // 未命中方块，在距离飞机40格处扫描
             scanCenter = startPos.add(
                 direction.x * 40.0,
                 direction.y * 40.0,
@@ -108,26 +106,7 @@ public class HomingRocketLauncher extends BulletWeapon {
             this::isValidTarget
         );
 
-        // 过滤25生命值以下的目标
-        List<LivingEntity> validTargets = entities.stream()
-            .filter(e -> e.getHealth() >= 25.0f)
-            .toList();
-
-        if (validTargets.isEmpty()) {
-            return null;
-        }
-
-        // 优先选择带有 airstrikepointers:tracked 标签的目标
-        LivingEntity trackedTarget = validTargets.stream()
-            .filter(e -> e.getPersistentData().getBoolean(TRACKED_TAG))
-            .max(Comparator.comparingDouble(LivingEntity::getMaxHealth))
-            .orElse(null);
-
-        // 如果有tracked目标则选择它,否则选择最大生命值的
-        return trackedTarget != null ? trackedTarget
-            : validTargets.stream()
-                .max(Comparator.comparingDouble(LivingEntity::getMaxHealth))
-                .orElse(null);
+        return TargetSelector.selectTarget(getEntity().level(), scanCenter, startPos, entities, getEntity());
     }
 
     private boolean isValidTarget(LivingEntity entity) {
