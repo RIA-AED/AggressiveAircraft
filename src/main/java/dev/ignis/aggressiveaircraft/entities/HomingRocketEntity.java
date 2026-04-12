@@ -27,11 +27,15 @@ public class HomingRocketEntity extends AbstractHurtingProjectile {
     private static final double MID_FLIGHT_SCAN_DISTANCE = 25.0; // 前方25格
     private static final double MID_FLIGHT_SCAN_RADIUS = 25.0; // 搜索半径25格
     private static final String TRACKED_TAG = "airstrikepointers:tracked";
+    private static final int MAX_PENETRATION = 10; // 最大穿墙次数
+    private static final float BLOCK_HARDNESS_THRESHOLD = 50.0f; // 方块硬度阈值
+    private static final float PENETRATION_EXPLOSION_POWER = 2.0f; // 穿墙爆炸强度
 
     private float damage = 200.0f;
     private float explosionPower = 2.0f;
     private int lifetime = 0;
     private int midFlightScanTimer = 0;
+    private int penetrationCount = 0; // 当前穿墙次数
     private LivingEntity target = null;
 
     public HomingRocketEntity(EntityType<? extends HomingRocketEntity> entityType, Level level) {
@@ -194,14 +198,48 @@ public class HomingRocketEntity extends AbstractHurtingProjectile {
 
     @Override
     protected void onHitBlock(BlockHitResult result) {
-        explode();
-        this.discard();
+        if (this.level().isClientSide) {
+            return;
+        }
+
+        BlockPos blockPos = result.getBlockPos();
+        BlockState blockState = this.level().getBlockState(blockPos);
+        float hardness = blockState.getDestroySpeed(this.level(), blockPos);
+
+        // 检查是否还能穿墙
+        if (penetrationCount < MAX_PENETRATION && hardness < BLOCK_HARDNESS_THRESHOLD && hardness >= 0) {
+            // 破坏方块并产生爆炸
+            this.level().explode(
+                this,
+                blockPos.getX() + 0.5,
+                blockPos.getY() + 0.5,
+                blockPos.getZ() + 0.5,
+                PENETRATION_EXPLOSION_POWER,
+                Level.ExplosionInteraction.BLOCK
+            );
+
+            // 破坏方块
+            this.level().destroyBlock(blockPos, false);
+
+            // 增加穿墙计数
+            penetrationCount++;
+
+            // 继续飞行：将火箭移动到方块另一侧
+            Vec3 motion = this.getDeltaMovement();
+            Vec3 newPos = result.getLocation().add(motion.normalize().scale(0.5));
+            this.setPos(newPos.x, newPos.y, newPos.z);
+        } else {
+            // 无法穿墙，正常爆炸
+            explode();
+            this.discard();
+        }
     }
 
     @Override
     protected void onHit(HitResult result) {
         super.onHit(result);
-        if (!this.level().isClientSide) {
+        // 只有非方块命中时才在这里处理（实体命中已在onHitEntity处理）
+        if (!this.level().isClientSide && result.getType() != HitResult.Type.BLOCK) {
             explode();
             this.discard();
         }
