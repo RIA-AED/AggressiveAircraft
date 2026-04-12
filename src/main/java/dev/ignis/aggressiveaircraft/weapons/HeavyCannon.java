@@ -75,14 +75,18 @@ public class HeavyCannon extends BulletWeapon {
     public void clientFire(int index) {
         // 射速是每秒发射次数，所以间隔 = 1/射速（秒）
         float fireIntervalSeconds = 1.0f / (float)(double)ModConfig.HEAVY_CANNON_FIRE_RATE.get();
-        // 每tick增加的时间（1tick = 1/20秒）
-        float tickDelta = 1.0f / 20.0f;
-        fireAccumulator += tickDelta;
 
-        if (fireAccumulator >= fireIntervalSeconds) {
-            fireAccumulator = 0;
+        // 先检查是否可以发射（首次或CD已好）
+        if (fireAccumulator <= 0.0f) {
+            // 先发射
             NetworkHandler.sendToServer(new FireMessage(getSlot(), index, getDirection()));
+            // 再进入CD
+            fireAccumulator = fireIntervalSeconds;
         }
+
+        // 每tick减少CD时间（1tick = 1/20秒）
+        float tickDelta = 1.0f / 20.0f;
+        fireAccumulator -= tickDelta;
     }
 
     @Override
