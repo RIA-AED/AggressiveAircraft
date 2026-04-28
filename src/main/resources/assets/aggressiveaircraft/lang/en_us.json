@@ -20,5 +20,9 @@
   "item.aggressiveaircraft.cluster_dispenser.description": "Aerial dispenser that releases explosive submunitions",
   "item.aggressiveaircraft.cluster_bomb": "Cluster Bomb",
   "item.aggressiveaircraft.rotary_cannon": "Rotary Cannon",
-  "item.aggressiveaircraft.rotary_cannon.description": "High-speed forward-firing rotary cannon with explosive rounds"
+  "item.aggressiveaircraft.rotary_cannon.description": "High-speed forward-firing rotary cannon with explosive rounds",
+  "item.aggressiveaircraft.rocket_pod": "55mm HEAT Rocket Pod",
+  "item.aggressiveaircraft.rocket_pod.description": "Forward-firing rocket pod launching 55mm HEAT rockets",
+  "item.aggressiveaircraft.rocket_pod_ammo": "55mm HEAT Rocket",
+  "entity.aggressiveaircraft.rocket_pod_rocket": "55mm HEAT Rocket"
 }

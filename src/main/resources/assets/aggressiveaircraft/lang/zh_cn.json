@@ -1,5 +1,5 @@
 {
-  "item.aggressiveaircraft.machine_gun": "高速机枪",
+  "item.aggressiveaircraft.machine_gun": "航空机枪",
   "item.aggressiveaircraft.machine_gun.description": "使用大口径弹药的高射速前射武器",
   "item.aggressiveaircraft.heavy_cannon": "高爆机炮",
   "item.aggressiveaircraft.heavy_cannon.description": "发射高爆炮弹的重型机炮炮塔",
@@ -9,8 +9,20 @@
   "item.aggressiveaircraft.he_cannon_ammo": "高爆机炮弹药",
   "item.aggressiveaircraft.bomb_200lb": "200磅航弹",
   "item.aggressiveaircraft.item.weapon": "武器",
-  "entity.aggressiveaircraft.explosive_bullet": "高爆弹",
+  "entity.aggressiveaircraft.explosive_bullet": "高爆机炮弹药",
   "entity.aggressiveaircraft.heavy_bomb": "重型炸弹",
+  "entity.aggressiveaircraft.homing_rocket": "制导火箭弹",
+  "item.aggressiveaircraft.homing_rocket_launcher": "制导火箭弹挂架",
+  "item.aggressiveaircraft.homing_rocket_launcher.description": "能挂载红外制导火箭弹的挂架",
+  "item.aggressiveaircraft.homing_rocket_ammo": "制导火箭弹",
+  "entity.aggressiveaircraft.cluster_dispenser": "集束弹布撒器",
+  "item.aggressiveaircraft.cluster_dispenser": "集束弹布撒器挂架",
+  "item.aggressiveaircraft.cluster_dispenser.description": "能挂载面打击集束弹药的挂架",
+  "item.aggressiveaircraft.cluster_bomb": "集束弹布撒器",
   "item.aggressiveaircraft.rotary_cannon": "旋转机炮",
-  "item.aggressiveaircraft.rotary_cannon.description": "发射高爆炮弹的高射速前射旋转机炮"
+  "item.aggressiveaircraft.rotary_cannon.description": "发射高爆炮弹的高射速前射旋转机炮",
+  "item.aggressiveaircraft.rocket_pod": "55mm破甲火箭巢",
+  "item.aggressiveaircraft.rocket_pod.description": "发射55mm破甲火箭的前射火箭巢",
+  "item.aggressiveaircraft.rocket_pod_ammo": "55mm破甲火箭",
+  "entity.aggressiveaircraft.rocket_pod_rocket": "55mm破甲火箭"
 }

@@ -30,5 +30,9 @@ public class ModWeapons {
                 ResourceLocation.tryBuild(AggressiveAircraft.MODID, "rotary_cannon"),
                 RotaryCannon::new
         );
+        WeaponRegistry.register(
+                ResourceLocation.tryBuild(AggressiveAircraft.MODID, "rocket_pod"),
+                RocketPod::new
+        );
     }
 }

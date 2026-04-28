@@ -5,6 +5,7 @@ import dev.ignis.aggressiveaircraft.client.render.ClusterDispenserRenderer;
 import dev.ignis.aggressiveaircraft.client.render.ExplosiveBulletRenderer;
 import dev.ignis.aggressiveaircraft.client.render.HeavyBombRenderer;
 import dev.ignis.aggressiveaircraft.client.render.HomingRocketRenderer;
+import dev.ignis.aggressiveaircraft.client.render.RocketPodRocketRenderer;
 import immersive_aircraft.WeaponRendererRegistry;
 import immersive_aircraft.client.render.entity.weaponRenderer.SimpleWeaponRenderer;
 import immersive_aircraft.resources.bbmodel.BBAnimationVariables;
@@ -68,6 +69,8 @@ public class AggressiveAircraft {
             event.accept(ModItems.CLUSTER_DISPENSER.get());
             event.accept(ModItems.CLUSTER_BOMB.get());
             event.accept(ModItems.ROTARY_CANNON.get());
+            event.accept(ModItems.ROCKET_POD.get());
+            event.accept(ModItems.ROCKET_POD_AMMO.get());
         }
     }
 
@@ -86,6 +89,7 @@ public class AggressiveAircraft {
             event.registerEntityRenderer(ModEntities.HEAVY_BOMB.get(), HeavyBombRenderer::new);
             event.registerEntityRenderer(ModEntities.HOMING_ROCKET.get(), HomingRocketRenderer::new);
             event.registerEntityRenderer(ModEntities.CLUSTER_DISPENSER.get(), ClusterDispenserRenderer::new);
+            event.registerEntityRenderer(ModEntities.ROCKET_POD_ROCKET.get(), RocketPodRocketRenderer::new);
 
             // Register custom animation variables
             BBAnimationVariables.register("weapon_ready");
@@ -115,6 +119,10 @@ public class AggressiveAircraft {
             WeaponRendererRegistry.register(
                     ResourceLocation.tryBuild(MODID, "rotary_cannon"),
                     new SimpleWeaponRenderer(ResourceLocation.tryBuild(MODID, "rotary_cannon"))
+            );
+            WeaponRendererRegistry.register(
+                    ResourceLocation.tryBuild(MODID, "rocket_pod"),
+                    new SimpleWeaponRenderer(ResourceLocation.tryBuild(MODID, "rocket_pod"))
             );
         }
     }

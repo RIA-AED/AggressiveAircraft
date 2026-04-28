@@ -44,6 +44,14 @@ public class ModConfig {
     public static final ForgeConfigSpec.IntValue CLUSTER_DISPENSER_AMMO_CONSUMPTION;
     public static final ForgeConfigSpec.DoubleValue CLUSTER_DISPENSER_COOLDOWN;
 
+    // Rocket Pod Config
+    public static final ForgeConfigSpec.ConfigValue<String> ROCKET_POD_AMMO;
+    public static final ForgeConfigSpec.IntValue ROCKET_POD_AMMO_CONSUMPTION;
+    public static final ForgeConfigSpec.IntValue ROCKET_POD_DAMAGE;
+    public static final ForgeConfigSpec.DoubleValue ROCKET_POD_FIRE_RATE;
+    public static final ForgeConfigSpec.DoubleValue ROCKET_POD_EXPLOSION_POWER;
+    public static final ForgeConfigSpec.BooleanValue ROCKET_POD_DESTROY_BLOCKS;
+
     // Rotary Cannon Config
     public static final ForgeConfigSpec.ConfigValue<String> ROTARY_CANNON_AMMO;
     public static final ForgeConfigSpec.IntValue ROTARY_CANNON_AMMO_CONSUMPTION;
@@ -138,6 +146,27 @@ public class ModConfig {
         CLUSTER_DISPENSER_COOLDOWN = BUILDER
                 .comment("Cooldown time in seconds")
                 .defineInRange("cooldown", 30.0, 0.0, 300.0);
+        BUILDER.pop();
+
+        BUILDER.push("rocket_pod");
+        ROCKET_POD_AMMO = BUILDER
+                .comment("Ammo item ID for Rocket Pod")
+                .define("ammo", "aggressiveaircraft:rocket_pod_ammo");
+        ROCKET_POD_AMMO_CONSUMPTION = BUILDER
+                .comment("Ammo consumption per shot")
+                .defineInRange("ammo_consumption", 1, 1, 64);
+        ROCKET_POD_DAMAGE = BUILDER
+                .comment("Direct hit damage")
+                .defineInRange("damage", 50, 1, 500);
+        ROCKET_POD_FIRE_RATE = BUILDER
+                .comment("Fire rate in shots per second")
+                .defineInRange("fire_rate", 5.0, 0.1, 20.0);
+        ROCKET_POD_EXPLOSION_POWER = BUILDER
+                .comment("Explosion power on impact")
+                .defineInRange("explosion_power", 2.0, 0.0, 20.0);
+        ROCKET_POD_DESTROY_BLOCKS = BUILDER
+                .comment("Whether explosion destroys blocks")
+                .define("destroy_blocks", false);
         BUILDER.pop();
 
         BUILDER.push("rotary_cannon");
