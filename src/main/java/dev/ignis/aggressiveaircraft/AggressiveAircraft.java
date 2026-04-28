@@ -2,6 +2,7 @@ package dev.ignis.aggressiveaircraft;
 
 import com.mojang.logging.LogUtils;
 import dev.ignis.aggressiveaircraft.client.render.ClusterDispenserRenderer;
+import dev.ignis.aggressiveaircraft.client.render.WeaponHudOverlay;
 import dev.ignis.aggressiveaircraft.client.render.ExplosiveBulletRenderer;
 import dev.ignis.aggressiveaircraft.client.render.HeavyBombRenderer;
 import dev.ignis.aggressiveaircraft.client.render.HomingRocketRenderer;
@@ -51,6 +52,10 @@ public class AggressiveAircraft {
         ModEntities.register(modEventBus);
 
         MinecraftForge.EVENT_BUS.register(this);
+
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            MinecraftForge.EVENT_BUS.register(new WeaponHudOverlay());
+        }
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, SPEC);
     }
