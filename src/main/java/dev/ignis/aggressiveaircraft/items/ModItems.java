@@ -21,19 +21,19 @@ public class ModItems {
             () -> new WeaponItem(new Item.Properties().stacksTo(1), immersive_aircraft.entity.misc.WeaponMount.Type.DROP));
 
     public static final RegistryObject<Item> LIGHT_MG_AMMO = ITEMS.register("light_mg_ammo",
-            () -> new Item(new Item.Properties().stacksTo(16)));
+            () -> new Item(new Item.Properties().stacksTo(64)));
 
     public static final RegistryObject<Item> HE_CANNON_AMMO = ITEMS.register("he_cannon_ammo",
-            () -> new Item(new Item.Properties().stacksTo(4)));
+            () -> new Item(new Item.Properties().stacksTo(16)));
 
     public static final RegistryObject<Item> BOMB_200LB = ITEMS.register("bomb_200lb",
-            () -> new Item(new Item.Properties().stacksTo(1)));
+            () -> new Item(new Item.Properties().stacksTo(2)));
 
     public static final RegistryObject<Item> HOMING_ROCKET_LAUNCHER = ITEMS.register("homing_rocket_launcher",
             () -> new WeaponItem(new Item.Properties().stacksTo(1), immersive_aircraft.entity.misc.WeaponMount.Type.FRONT));
 
     public static final RegistryObject<Item> HOMING_ROCKET_AMMO = ITEMS.register("homing_rocket_ammo",
-            () -> new Item(new Item.Properties().stacksTo(4)));
+            () -> new Item(new Item.Properties().stacksTo(1)));
 
     public static final RegistryObject<Item> CLUSTER_DISPENSER = ITEMS.register("cluster_dispenser",
             () -> new WeaponItem(new Item.Properties().stacksTo(1), immersive_aircraft.entity.misc.WeaponMount.Type.DROP));
