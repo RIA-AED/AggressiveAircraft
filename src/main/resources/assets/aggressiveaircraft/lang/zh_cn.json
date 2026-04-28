@@ -10,5 +10,7 @@
   "item.aggressiveaircraft.bomb_200lb": "200磅航弹",
   "item.aggressiveaircraft.item.weapon": "武器",
   "entity.aggressiveaircraft.explosive_bullet": "高爆弹",
-  "entity.aggressiveaircraft.heavy_bomb": "重型炸弹"
+  "entity.aggressiveaircraft.heavy_bomb": "重型炸弹",
+  "item.aggressiveaircraft.rotary_cannon": "旋转机炮",
+  "item.aggressiveaircraft.rotary_cannon.description": "发射高爆炮弹的高射速前射旋转机炮"
 }

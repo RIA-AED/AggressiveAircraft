@@ -18,5 +18,7 @@
   "entity.aggressiveaircraft.cluster_dispenser": "Cluster Dispenser",
   "item.aggressiveaircraft.cluster_dispenser": "Cluster Dispenser",
   "item.aggressiveaircraft.cluster_dispenser.description": "Aerial dispenser that releases explosive submunitions",
-  "item.aggressiveaircraft.cluster_bomb": "Cluster Bomb"
+  "item.aggressiveaircraft.cluster_bomb": "Cluster Bomb",
+  "item.aggressiveaircraft.rotary_cannon": "Rotary Cannon",
+  "item.aggressiveaircraft.rotary_cannon.description": "High-speed forward-firing rotary cannon with explosive rounds"
 }

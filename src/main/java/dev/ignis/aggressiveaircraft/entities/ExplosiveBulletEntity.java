@@ -151,4 +151,9 @@ public class ExplosiveBulletEntity extends AbstractHurtingProjectile {
     public boolean isPushable() {
         return false; // 禁止被爆炸等外力推动
     }
+
+    @Override
+    public boolean ignoreExplosion() {
+        return true; // 忽略爆炸，防止被其他火箭炸飞
+    }
 }

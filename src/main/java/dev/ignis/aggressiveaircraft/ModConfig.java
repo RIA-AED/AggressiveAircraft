@@ -44,6 +44,14 @@ public class ModConfig {
     public static final ForgeConfigSpec.IntValue CLUSTER_DISPENSER_AMMO_CONSUMPTION;
     public static final ForgeConfigSpec.DoubleValue CLUSTER_DISPENSER_COOLDOWN;
 
+    // Rotary Cannon Config
+    public static final ForgeConfigSpec.ConfigValue<String> ROTARY_CANNON_AMMO;
+    public static final ForgeConfigSpec.IntValue ROTARY_CANNON_AMMO_CONSUMPTION;
+    public static final ForgeConfigSpec.IntValue ROTARY_CANNON_DAMAGE;
+    public static final ForgeConfigSpec.DoubleValue ROTARY_CANNON_FIRE_RATE;
+    public static final ForgeConfigSpec.DoubleValue ROTARY_CANNON_EXPLOSION_POWER;
+    public static final ForgeConfigSpec.BooleanValue ROTARY_CANNON_DESTROY_BLOCKS;
+
     // Inventory Control Config
     public static final ForgeConfigSpec.DoubleValue INVENTORY_HEIGHT_THRESHOLD;
 
@@ -130,6 +138,27 @@ public class ModConfig {
         CLUSTER_DISPENSER_COOLDOWN = BUILDER
                 .comment("Cooldown time in seconds")
                 .defineInRange("cooldown", 30.0, 0.0, 300.0);
+        BUILDER.pop();
+
+        BUILDER.push("rotary_cannon");
+        ROTARY_CANNON_AMMO = BUILDER
+                .comment("Ammo item ID for Rotary Cannon")
+                .define("ammo", "aggressiveaircraft:he_cannon_ammo");
+        ROTARY_CANNON_AMMO_CONSUMPTION = BUILDER
+                .comment("Ammo consumption per shot")
+                .defineInRange("ammo_consumption", 1, 1, 64);
+        ROTARY_CANNON_DAMAGE = BUILDER
+                .comment("Direct hit damage")
+                .defineInRange("damage", 20, 1, 200);
+        ROTARY_CANNON_FIRE_RATE = BUILDER
+                .comment("Fire rate in shots per second")
+                .defineInRange("fire_rate", 10.0, 0.1, 30.0);
+        ROTARY_CANNON_EXPLOSION_POWER = BUILDER
+                .comment("Explosion power on impact")
+                .defineInRange("explosion_power", 2.0, 0.0, 20.0);
+        ROTARY_CANNON_DESTROY_BLOCKS = BUILDER
+                .comment("Whether explosion destroys blocks")
+                .define("destroy_blocks", false);
         BUILDER.pop();
 
         BUILDER.push("inventory_control");

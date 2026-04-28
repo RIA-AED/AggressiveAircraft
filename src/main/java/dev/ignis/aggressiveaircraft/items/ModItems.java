@@ -41,6 +41,9 @@ public class ModItems {
     public static final RegistryObject<Item> CLUSTER_BOMB = ITEMS.register("cluster_bomb",
             () -> new Item(new Item.Properties().stacksTo(2)));
 
+    public static final RegistryObject<Item> ROTARY_CANNON = ITEMS.register("rotary_cannon",
+            () -> new WeaponItem(new Item.Properties().stacksTo(1), immersive_aircraft.entity.misc.WeaponMount.Type.FRONT));
+
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
     }

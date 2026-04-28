@@ -67,6 +67,7 @@ public class AggressiveAircraft {
             event.accept(ModItems.HOMING_ROCKET_AMMO.get());
             event.accept(ModItems.CLUSTER_DISPENSER.get());
             event.accept(ModItems.CLUSTER_BOMB.get());
+            event.accept(ModItems.ROTARY_CANNON.get());
         }
     }
 
@@ -88,6 +89,7 @@ public class AggressiveAircraft {
 
             // Register custom animation variables
             BBAnimationVariables.register("weapon_ready");
+            BBAnimationVariables.register("rotary_progress");
 
             // Register weapon renderers
             WeaponRendererRegistry.register(
@@ -109,6 +111,10 @@ public class AggressiveAircraft {
             WeaponRendererRegistry.register(
                     ResourceLocation.tryBuild(MODID, "cluster_dispenser"),
                     new SimpleWeaponRenderer(ResourceLocation.tryBuild(MODID, "cluster_dispenser"))
+            );
+            WeaponRendererRegistry.register(
+                    ResourceLocation.tryBuild(MODID, "rotary_cannon"),
+                    new SimpleWeaponRenderer(ResourceLocation.tryBuild(MODID, "rotary_cannon"))
             );
         }
     }

@@ -26,5 +26,9 @@ public class ModWeapons {
                 ResourceLocation.tryBuild(AggressiveAircraft.MODID, "cluster_dispenser"),
                 ClusterDispenser::new
         );
+        WeaponRegistry.register(
+                ResourceLocation.tryBuild(AggressiveAircraft.MODID, "rotary_cannon"),
+                RotaryCannon::new
+        );
     }
 }
