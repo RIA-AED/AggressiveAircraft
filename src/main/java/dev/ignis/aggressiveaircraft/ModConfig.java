@@ -43,6 +43,9 @@ public class ModConfig {
     public static final ForgeConfigSpec.ConfigValue<String> CLUSTER_DISPENSER_AMMO;
     public static final ForgeConfigSpec.IntValue CLUSTER_DISPENSER_AMMO_CONSUMPTION;
     public static final ForgeConfigSpec.DoubleValue CLUSTER_DISPENSER_COOLDOWN;
+    public static final ForgeConfigSpec.IntValue CLUSTER_DISPENSER_BOMBLET_DAMAGE;
+    public static final ForgeConfigSpec.DoubleValue CLUSTER_DISPENSER_BOMBLET_EXPLOSION_POWER;
+    public static final ForgeConfigSpec.BooleanValue CLUSTER_DISPENSER_BOMBLET_DESTROY_BLOCKS;
 
     // Rocket Pod Config
     public static final ForgeConfigSpec.ConfigValue<String> ROCKET_POD_AMMO;
@@ -146,6 +149,15 @@ public class ModConfig {
         CLUSTER_DISPENSER_COOLDOWN = BUILDER
                 .comment("Cooldown time in seconds")
                 .defineInRange("cooldown", 30.0, 0.0, 300.0);
+        CLUSTER_DISPENSER_BOMBLET_DAMAGE = BUILDER
+                .comment("Damage per bomblet hit")
+                .defineInRange("bomblet_damage", 1, 1, 500);
+        CLUSTER_DISPENSER_BOMBLET_EXPLOSION_POWER = BUILDER
+                .comment("Explosion power per bomblet")
+                .defineInRange("bomblet_explosion_power", 4.0, 0.0, 20.0);
+        CLUSTER_DISPENSER_BOMBLET_DESTROY_BLOCKS = BUILDER
+                .comment("Whether bomblet explosions destroy blocks")
+                .define("bomblet_destroy_blocks", false);
         BUILDER.pop();
 
         BUILDER.push("rocket_pod");

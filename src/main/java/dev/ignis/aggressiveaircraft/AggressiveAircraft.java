@@ -1,6 +1,7 @@
 package dev.ignis.aggressiveaircraft;
 
 import com.mojang.logging.LogUtils;
+import dev.ignis.aggressiveaircraft.client.render.ClusterBombletRenderer;
 import dev.ignis.aggressiveaircraft.client.render.ClusterDispenserRenderer;
 import dev.ignis.aggressiveaircraft.client.render.WeaponHudOverlay;
 import dev.ignis.aggressiveaircraft.client.render.ExplosiveBulletRenderer;
@@ -94,6 +95,7 @@ public class AggressiveAircraft {
             event.registerEntityRenderer(ModEntities.HEAVY_BOMB.get(), HeavyBombRenderer::new);
             event.registerEntityRenderer(ModEntities.HOMING_ROCKET.get(), HomingRocketRenderer::new);
             event.registerEntityRenderer(ModEntities.CLUSTER_DISPENSER.get(), ClusterDispenserRenderer::new);
+            event.registerEntityRenderer(ModEntities.CLUSTER_BOMBLET.get(), ClusterBombletRenderer::new);
             event.registerEntityRenderer(ModEntities.ROCKET_POD_ROCKET.get(), RocketPodRocketRenderer::new);
 
             // Register custom animation variables

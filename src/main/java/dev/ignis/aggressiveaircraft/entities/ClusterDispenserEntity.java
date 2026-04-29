@@ -1,6 +1,7 @@
 package dev.ignis.aggressiveaircraft.entities;
 
 import dev.ignis.aggressiveaircraft.AggressiveAircraft;
+import dev.ignis.aggressiveaircraft.ModConfig;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
@@ -139,23 +140,23 @@ public class ClusterDispenserEntity extends AbstractHurtingProjectile {
     }
 
     private void fireBullet() {
-        var bullet = ModEntities.EXPLOSIVE_BULLET.get().create(this.level());
-        if (bullet == null) return;
+        var bomblet = ModEntities.CLUSTER_BOMBLET.get().create(this.level());
+        if (bomblet == null) return;
 
-        // 设置子弹属性
-        bullet.setDamage(30.0f);
-        bullet.setExplosionPower(2.0);
-        bullet.setDestroyBlocks(false);
-        bullet.setOwner(this.getOwner());
-        bullet.setPos(this.getX(), this.getY(), this.getZ());
+        // Read config values
+        bomblet.setDamage(ModConfig.CLUSTER_DISPENSER_BOMBLET_DAMAGE.get());
+        bomblet.setExplosionPower(ModConfig.CLUSTER_DISPENSER_BOMBLET_EXPLOSION_POWER.get());
+        bomblet.setDestroyBlocks(ModConfig.CLUSTER_DISPENSER_BOMBLET_DESTROY_BLOCKS.get());
+        bomblet.setOwner(this.getOwner());
+        bomblet.setPos(this.getX(), this.getY(), this.getZ());
 
-        // 向下散射
+        // Scatter downward
         double scatterX = (random.nextDouble() - 0.5) * 0.3;
         double scatterZ = (random.nextDouble() - 0.5) * 0.3;
         double downwardSpeed = 2.0 + random.nextDouble() * 0.5;
 
-        bullet.shoot(scatterX, -1.0, scatterZ, (float) downwardSpeed, 0.0f);
-        this.level().addFreshEntity(bullet);
+        bomblet.shoot(scatterX, -1.0, scatterZ, (float) downwardSpeed, 0.0f);
+        this.level().addFreshEntity(bomblet);
         
         // 播放拾起物品的声音，音量2.0（更大声）
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(), 

@@ -24,5 +24,6 @@
   "item.aggressiveaircraft.rocket_pod": "55mm HEAT Rocket Pod",
   "item.aggressiveaircraft.rocket_pod.description": "Forward-firing rocket pod launching 55mm HEAT rockets",
   "item.aggressiveaircraft.rocket_pod_ammo": "55mm HEAT Rocket",
-  "entity.aggressiveaircraft.rocket_pod_rocket": "55mm HEAT Rocket"
+  "entity.aggressiveaircraft.rocket_pod_rocket": "55mm HEAT Rocket",
+  "entity.aggressiveaircraft.cluster_bomblet": "Cluster Bomblet"
 }

@@ -36,6 +36,14 @@ public class ModEntities {
                     .fireImmune()
                     .build(ResourceLocation.tryBuild(AggressiveAircraft.MODID, "homing_rocket").toString()));
 
+    public static final RegistryObject<EntityType<ClusterBombletEntity>> CLUSTER_BOMBLET = ENTITIES.register("cluster_bomblet",
+            () -> EntityType.Builder.<ClusterBombletEntity>of(ClusterBombletEntity::new, MobCategory.MISC)
+                    .sized(0.3f, 0.3f)
+                    .clientTrackingRange(10)
+                    .updateInterval(10)
+                    .fireImmune()
+                    .build(ResourceLocation.tryBuild(AggressiveAircraft.MODID, "cluster_bomblet").toString()));
+
     public static final RegistryObject<EntityType<ClusterDispenserEntity>> CLUSTER_DISPENSER = ENTITIES.register("cluster_dispenser",
             () -> EntityType.Builder.<ClusterDispenserEntity>of(ClusterDispenserEntity::new, MobCategory.MISC)
                     .sized(0.5f, 0.5f)

@@ -24,5 +24,6 @@
   "item.aggressiveaircraft.rocket_pod": "55mm破甲火箭巢",
   "item.aggressiveaircraft.rocket_pod.description": "发射55mm破甲火箭的前射火箭巢",
   "item.aggressiveaircraft.rocket_pod_ammo": "55mm破甲火箭",
-  "entity.aggressiveaircraft.rocket_pod_rocket": "55mm破甲火箭"
+  "entity.aggressiveaircraft.rocket_pod_rocket": "55mm破甲火箭",
+  "entity.aggressiveaircraft.cluster_bomblet": "集束子母弹"
 }
