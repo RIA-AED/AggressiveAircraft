@@ -6,6 +6,7 @@
   "refmap": "aggressiveaircraft.refmap.json",
   "mixins": [
     "AircraftEntityGroundPitchMixin",
+    "BambooHopperEntityMixin",
     "InventoryVehicleEntityMixin",
     "SparseSimpleInventoryMixin",
     "VehicleScreenHandlerMixin"
