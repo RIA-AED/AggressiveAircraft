@@ -42,20 +42,25 @@ public abstract class AircraftEntityGroundPitchMixin {
     }
 
     @Unique
-    private boolean aggressiveAircraft$isSelfNotPilotOrEmpty() {
+    private boolean aggressiveAircraft$isTrulyParked() {
         Entity self = (Entity)(Object)this;
         VehicleEntity aircraft = (VehicleEntity) self;
-        if (self.level().isClientSide()) {
-            // 客户端：检查是否包含本地玩家
-            for (Entity passenger : aircraft.getPassengers()) {
-                if (passenger instanceof net.minecraft.client.player.LocalPlayer) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        // 服务端：保持原逻辑
+        // 仅当飞机完全没有乘客时才认为是"停放"状态
+        // 这样其他玩家驾驶的飞机不会被强制地面姿态
         return aircraft.getPassengers().isEmpty();
+    }
+
+    @Unique
+    private boolean aggressiveAircraft$isLocalPlayerPiloting() {
+        Entity self = (Entity)(Object)this;
+        if (!self.level().isClientSide()) return false;
+        VehicleEntity aircraft = (VehicleEntity) self;
+        for (Entity passenger : aircraft.getPassengers()) {
+            if (passenger instanceof net.minecraft.client.player.LocalPlayer) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Unique
@@ -145,6 +150,7 @@ public abstract class AircraftEntityGroundPitchMixin {
             }
             aggressiveAircraft$lastPassengerCount = currentPassengerCount;
 
+            // 仅在无人停放且着地时，主动修正偏航跟随飞艇旋转
             if (aircraft.getPassengers().isEmpty() && aircraft.onGround()) {
                 if (AggressiveAircraft.VALKYRIENSKIES_LOADED) {
                     Ship ship = aggressiveAircraft$getShipManaging();
@@ -167,7 +173,7 @@ public abstract class AircraftEntityGroundPitchMixin {
     )
     private void forceGroundPitchWhenNoPilot(float pitch, CallbackInfo ci) {
         if((Object)this instanceof AircraftEntity aircraft) {
-            if (aggressiveAircraft$cachedShip!=null && aggressiveAircraft$isSelfNotPilotOrEmpty() && aircraft.onGround()) {
+            if (aggressiveAircraft$cachedShip!=null && aggressiveAircraft$isTrulyParked() && aircraft.onGround()) {
                 float groundPitch = -aircraft.getProperties().get(VehicleStat.GROUND_PITCH);
                 aggressiveAircraft$setXRot(groundPitch);
                 ci.cancel();
@@ -182,21 +188,37 @@ public abstract class AircraftEntityGroundPitchMixin {
     )
     private void forceGroundYawWhenNoPilot(float yaw, CallbackInfo ci) {
         if((Object)this instanceof VehicleEntity aircraft) {
-            if (aircraft.getPassengers().isEmpty() && aircraft.onGround()) {
-                Ship ship = aggressiveAircraft$getShipManaging();
-                if (ship != null) {
-                    float shipYaw = aggressiveAircraft$getShipYaw();
-                    // 使用存储的相对偏航 + 当前船的偏航
-                    float targetYaw = aggressiveAircraft$getWorldYawFromRelative(aggressiveAircraft$yRotStored, shipYaw);
-                    //AggressiveAircraft.LOGGER.info("[Calc] Target World Yaw: " + targetYaw + ", Ship Yaw: " + shipYaw + ", Stored: " + aggressiveAircraft$yRotStored);
-                    aggressiveAircraft$setYRot(targetYaw);
-                    ci.cancel();
-                }
-            } else {
-                // 存储相对偏航
+            if (!aircraft.onGround()) {
+                // 不在地面：仅存储相对偏航供后续使用
                 float shipYaw = aggressiveAircraft$getShipYaw();
+                if (shipYaw != 0) {
+                    aggressiveAircraft$yRotStored = aggressiveAircraft$getRelativeYaw(yRot, shipYaw);
+                }
+                return;
+            }
+
+            Ship ship = aggressiveAircraft$getShipManaging();
+            if (ship == null) return;
+
+            float shipYaw = aggressiveAircraft$getShipYaw();
+
+            if (aggressiveAircraft$isLocalPlayerPiloting()) {
+                // 本地玩家驾驶：yRot在ship-local空间，存储相对偏航供停放时使用
                 aggressiveAircraft$yRotStored = aggressiveAircraft$getRelativeYaw(yRot, shipYaw);
-                //AggressiveAircraft.LOGGER.info("[Set] World Yaw: " + yRot + ", Ship Yaw: " + shipYaw + ", Stored: " + aggressiveAircraft$yRotStored);
+                // 不取消，让正常的setYRot执行（本地控制不需要校正）
+            } else if (aircraft.getPassengers().isEmpty()) {
+                // 无人停放：使用存储的相对偏航 + 当前船的偏航，保持跟随船旋转
+                float targetYaw = aggressiveAircraft$getWorldYawFromRelative(aggressiveAircraft$yRotStored, shipYaw);
+                aggressiveAircraft$setYRot(targetYaw);
+                ci.cancel();
+            } else {
+                // 观察者视角，有其他玩家在驾驶：
+                // 服务端发来的yaw是ship-local空间（飞行员客户端在VS局部坐标系中设置），
+                // 需要加上shipYaw转换为世界偏航
+                aggressiveAircraft$yRotStored = aggressiveAircraft$normalizeYaw(yaw);
+                float targetYaw = aggressiveAircraft$getWorldYawFromRelative(yaw, shipYaw);
+                aggressiveAircraft$setYRot(targetYaw);
+                ci.cancel();
             }
         }
     }
