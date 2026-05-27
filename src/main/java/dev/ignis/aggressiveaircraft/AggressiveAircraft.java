@@ -7,6 +7,7 @@ import dev.ignis.aggressiveaircraft.client.render.WeaponHudOverlay;
 import dev.ignis.aggressiveaircraft.client.render.ExplosiveBulletRenderer;
 import dev.ignis.aggressiveaircraft.client.render.HeavyBombRenderer;
 import dev.ignis.aggressiveaircraft.client.render.HomingRocketRenderer;
+import dev.ignis.aggressiveaircraft.client.render.NapalmBombRenderer;
 import dev.ignis.aggressiveaircraft.client.render.RocketPodRocketRenderer;
 import immersive_aircraft.WeaponRendererRegistry;
 import immersive_aircraft.client.render.entity.weaponRenderer.SimpleWeaponRenderer;
@@ -77,6 +78,8 @@ public class AggressiveAircraft {
             event.accept(ModItems.ROTARY_CANNON.get());
             event.accept(ModItems.ROCKET_POD.get());
             event.accept(ModItems.ROCKET_POD_AMMO.get());
+            event.accept(ModItems.NAPALM_BOMB_BAY.get());
+            event.accept(ModItems.NAPALM_BOMB_AMMO.get());
         }
     }
 
@@ -97,6 +100,7 @@ public class AggressiveAircraft {
             event.registerEntityRenderer(ModEntities.CLUSTER_DISPENSER.get(), ClusterDispenserRenderer::new);
             event.registerEntityRenderer(ModEntities.CLUSTER_BOMBLET.get(), ClusterBombletRenderer::new);
             event.registerEntityRenderer(ModEntities.ROCKET_POD_ROCKET.get(), RocketPodRocketRenderer::new);
+            event.registerEntityRenderer(ModEntities.NAPALM_BOMB.get(), NapalmBombRenderer::new);
 
             // Register custom animation variables
             BBAnimationVariables.register("weapon_ready");
@@ -130,6 +134,10 @@ public class AggressiveAircraft {
             WeaponRendererRegistry.register(
                     ResourceLocation.tryBuild(MODID, "rocket_pod"),
                     new SimpleWeaponRenderer(ResourceLocation.tryBuild(MODID, "rocket_pod"))
+            );
+            WeaponRendererRegistry.register(
+                    ResourceLocation.tryBuild(MODID, "napalm_bomb_bay"),
+                    new SimpleWeaponRenderer(ResourceLocation.tryBuild(MODID, "napalm_bomb_bay"))
             );
         }
     }

@@ -60,6 +60,14 @@ public class ModEntities {
                     .fireImmune()
                     .build(ResourceLocation.tryBuild(AggressiveAircraft.MODID, "rocket_pod_rocket").toString()));
 
+    public static final RegistryObject<EntityType<NapalmBombEntity>> NAPALM_BOMB = ENTITIES.register("napalm_bomb",
+            () -> EntityType.Builder.<NapalmBombEntity>of(NapalmBombEntity::new, MobCategory.MISC)
+                    .sized(0.5f, 0.5f)
+                    .clientTrackingRange(10)
+                    .updateInterval(10)
+                    .fireImmune()
+                    .build(ResourceLocation.tryBuild(AggressiveAircraft.MODID, "napalm_bomb").toString()));
+
     public static void register(IEventBus eventBus) {
         ENTITIES.register(eventBus);
     }

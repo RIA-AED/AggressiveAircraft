@@ -25,5 +25,9 @@
   "item.aggressiveaircraft.rocket_pod.description": "Forward-firing rocket pod launching 55mm HEAT rockets",
   "item.aggressiveaircraft.rocket_pod_ammo": "55mm HEAT Rocket",
   "entity.aggressiveaircraft.rocket_pod_rocket": "55mm HEAT Rocket",
-  "entity.aggressiveaircraft.cluster_bomblet": "Cluster Bomblet"
+  "entity.aggressiveaircraft.cluster_bomblet": "Cluster Bomblet",
+  "item.aggressiveaircraft.napalm_bomb_bay": "Napalm Bomb Bay",
+  "item.aggressiveaircraft.napalm_bomb_bay.description": "Drops napalm bombs that set the area ablaze",
+  "item.aggressiveaircraft.napalm_bomb_ammo": "Napalm Bomb",
+  "entity.aggressiveaircraft.napalm_bomb": "Napalm Bomb"
 }

@@ -50,6 +50,12 @@ public class ModItems {
     public static final RegistryObject<Item> ROCKET_POD_AMMO = ITEMS.register("rocket_pod_ammo",
             () -> new Item(new Item.Properties().stacksTo(1)));
 
+    public static final RegistryObject<Item> NAPALM_BOMB_BAY = ITEMS.register("napalm_bomb_bay",
+            () -> new WeaponItem(new Item.Properties().stacksTo(1), immersive_aircraft.entity.misc.WeaponMount.Type.DROP));
+
+    public static final RegistryObject<Item> NAPALM_BOMB_AMMO = ITEMS.register("napalm_bomb_ammo",
+            () -> new Item(new Item.Properties().stacksTo(4)));
+
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
     }

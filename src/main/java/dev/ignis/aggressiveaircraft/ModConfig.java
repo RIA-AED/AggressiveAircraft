@@ -63,6 +63,14 @@ public class ModConfig {
     public static final ForgeConfigSpec.DoubleValue ROTARY_CANNON_EXPLOSION_POWER;
     public static final ForgeConfigSpec.BooleanValue ROTARY_CANNON_DESTROY_BLOCKS;
 
+    // Napalm Bomb Config
+    public static final ForgeConfigSpec.ConfigValue<String> NAPALM_BOMB_AMMO;
+    public static final ForgeConfigSpec.IntValue NAPALM_BOMB_AMMO_CONSUMPTION;
+    public static final ForgeConfigSpec.DoubleValue NAPALM_BOMB_COOLDOWN;
+    public static final ForgeConfigSpec.IntValue NAPALM_BOMB_FIRE_RADIUS;
+    public static final ForgeConfigSpec.IntValue NAPALM_BOMB_FIRE_DAMAGE;
+    public static final ForgeConfigSpec.IntValue NAPALM_BOMB_BURN_DURATION;
+
     // Inventory Control Config
     public static final ForgeConfigSpec.DoubleValue INVENTORY_HEIGHT_THRESHOLD;
 
@@ -200,6 +208,27 @@ public class ModConfig {
         ROTARY_CANNON_DESTROY_BLOCKS = BUILDER
                 .comment("Whether explosion destroys blocks")
                 .define("destroy_blocks", false);
+        BUILDER.pop();
+
+        BUILDER.push("napalm_bomb");
+        NAPALM_BOMB_AMMO = BUILDER
+                .comment("Ammo item ID for Napalm Bomb")
+                .define("ammo", "aggressiveaircraft:napalm_bomb_ammo");
+        NAPALM_BOMB_AMMO_CONSUMPTION = BUILDER
+                .comment("Ammo consumption per drop")
+                .defineInRange("ammo_consumption", 1, 1, 64);
+        NAPALM_BOMB_COOLDOWN = BUILDER
+                .comment("Cooldown time in seconds")
+                .defineInRange("cooldown", 15.0, 0.0, 300.0);
+        NAPALM_BOMB_FIRE_RADIUS = BUILDER
+                .comment("Radius in blocks for fire effect")
+                .defineInRange("fire_radius", 10, 1, 50);
+        NAPALM_BOMB_FIRE_DAMAGE = BUILDER
+                .comment("Extra fire damage dealt to entities in range")
+                .defineInRange("fire_damage", 10, 1, 200);
+        NAPALM_BOMB_BURN_DURATION = BUILDER
+                .comment("Duration in seconds that entities are set on fire")
+                .defineInRange("burn_duration", 20, 1, 120);
         BUILDER.pop();
 
         BUILDER.push("inventory_control");

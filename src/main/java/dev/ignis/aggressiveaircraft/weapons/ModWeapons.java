@@ -34,5 +34,9 @@ public class ModWeapons {
                 ResourceLocation.tryBuild(AggressiveAircraft.MODID, "rocket_pod"),
                 RocketPod::new
         );
+        WeaponRegistry.register(
+                ResourceLocation.tryBuild(AggressiveAircraft.MODID, "napalm_bomb_bay"),
+                NapalmBombBay::new
+        );
     }
 }
