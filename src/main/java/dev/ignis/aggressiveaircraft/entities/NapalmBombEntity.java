@@ -14,7 +14,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseFireBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 import java.util.Random;
@@ -39,6 +38,10 @@ public class NapalmBombEntity extends PrimedTnt {
         int i = this.getFuse() - (onGround() ? 5 : 1);
         this.setFuse(i);
         if (i <= 0) {
+            // Client spawns particles locally without server packets
+            if (this.level().isClientSide) {
+                this.spawnNapalmParticles();
+            }
             this.discard();
             if (!this.level().isClientSide) {
                 this.napalmExplosion();
@@ -48,6 +51,58 @@ public class NapalmBombEntity extends PrimedTnt {
             if (this.level().isClientSide) {
                 this.level().addParticle(ParticleTypes.SMOKE, this.getX(), this.getY() + 0.5, this.getZ(), 0.0, 0.0, 0.0);
             }
+        }
+    }
+
+    /**
+     * Client-side only: spawn large amounts of smoke and fire particles
+     */
+    private void spawnNapalmParticles() {
+        double x = this.getX();
+        double y = this.getY();
+        double z = this.getZ();
+        Level level = this.level();
+        int radius = ModConfig.NAPALM_BOMB_FIRE_RADIUS.get();
+
+        // Large smoke cloud
+        for (int i = 0; i < 80; i++) {
+            double ox = (random.nextDouble() - 0.5) * radius * 1.5;
+            double oy = random.nextDouble() * radius * 0.8;
+            double oz = (random.nextDouble() - 0.5) * radius * 1.5;
+            double vx = (random.nextDouble() - 0.5) * 0.3;
+            double vy = random.nextDouble() * 0.4 + 0.1;
+            double vz = (random.nextDouble() - 0.5) * 0.3;
+            level.addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, x + ox, y + oy, z + oz, vx, vy, vz);
+        }
+
+        // Large fire particles
+        for (int i = 0; i < 60; i++) {
+            double ox = (random.nextDouble() - 0.5) * radius;
+            double oy = random.nextDouble() * radius * 0.5;
+            double oz = (random.nextDouble() - 0.5) * radius;
+            double vx = (random.nextDouble() - 0.5) * 0.2;
+            double vy = random.nextDouble() * 0.3;
+            double vz = (random.nextDouble() - 0.5) * 0.2;
+            level.addParticle(ParticleTypes.FLAME, x + ox, y + oy, z + oz, vx, vy, vz);
+        }
+
+        // Extra large smoke puffs
+        for (int i = 0; i < 40; i++) {
+            double ox = (random.nextDouble() - 0.5) * radius;
+            double oy = random.nextDouble() * radius * 0.6;
+            double oz = (random.nextDouble() - 0.5) * radius;
+            double vx = (random.nextDouble() - 0.5) * 0.15;
+            double vy = random.nextDouble() * 0.5 + 0.2;
+            double vz = (random.nextDouble() - 0.5) * 0.15;
+            level.addParticle(ParticleTypes.LARGE_SMOKE, x + ox, y + oy, z + oz, vx, vy, vz);
+        }
+
+        // Lava-like dripping particles for napalm feel
+        for (int i = 0; i < 20; i++) {
+            double ox = (random.nextDouble() - 0.5) * radius * 0.8;
+            double oy = random.nextDouble() * 2.0;
+            double oz = (random.nextDouble() - 0.5) * radius * 0.8;
+            level.addParticle(ParticleTypes.LAVA, x + ox, y + oy, z + oz, 0, 0, 0);
         }
     }
 
@@ -98,8 +153,7 @@ public class NapalmBombEntity extends PrimedTnt {
             }
         }
 
-        // 3. Spawn particle effects - send a small explosion to trigger client-side particles
-        // Use a small explosion that doesn't destroy blocks to generate visual effects
+        // 3. Small explosion for sound effect only (no block damage)
         level.explode(
             this.getOwner() != null ? this.getOwner() : this,
             x, y, z,
