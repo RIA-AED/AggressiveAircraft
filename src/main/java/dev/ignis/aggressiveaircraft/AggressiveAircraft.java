@@ -9,9 +9,12 @@ import dev.ignis.aggressiveaircraft.client.render.HeavyBombRenderer;
 import dev.ignis.aggressiveaircraft.client.render.HomingRocketRenderer;
 import dev.ignis.aggressiveaircraft.client.render.NapalmBombRenderer;
 import dev.ignis.aggressiveaircraft.client.render.RocketPodRocketRenderer;
+import dev.ignis.aggressiveaircraft.network.s2c.AmmoSyncMessage;
 import immersive_aircraft.WeaponRendererRegistry;
+import immersive_aircraft.cobalt.network.NetworkHandler;
 import immersive_aircraft.client.render.entity.weaponRenderer.SimpleWeaponRenderer;
 import immersive_aircraft.resources.bbmodel.BBAnimationVariables;
+import dev.ignis.aggressiveaircraft.blocks.ModBlocks;
 import dev.ignis.aggressiveaircraft.entities.ModEntities;
 import dev.ignis.aggressiveaircraft.items.ModItems;
 import dev.ignis.aggressiveaircraft.weapons.ModWeapons;
@@ -50,6 +53,7 @@ public class AggressiveAircraft {
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::addCreative);
 
+        ModBlocks.register(modEventBus);
         ModItems.register(modEventBus);
         ModEntities.register(modEventBus);
 
@@ -80,12 +84,17 @@ public class AggressiveAircraft {
             event.accept(ModItems.ROCKET_POD_AMMO.get());
             event.accept(ModItems.NAPALM_BOMB_BAY.get());
             event.accept(ModItems.NAPALM_BOMB_AMMO.get());
+            event.accept(ModItems.AMMO_SUPPLY_STATION.get());
+            event.accept(ModItems.FUEL_SUPPLY_STATION.get());
+            event.accept(ModItems.REPAIR_STATION.get());
         }
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
             ModWeapons.register();
+            // Register lightweight ammo sync message (server → client)
+            NetworkHandler.registerMessage(MODID, AmmoSyncMessage.class, AmmoSyncMessage::new);
             LOGGER.info("AggressiveAircraft weapons registered");
         });
     }

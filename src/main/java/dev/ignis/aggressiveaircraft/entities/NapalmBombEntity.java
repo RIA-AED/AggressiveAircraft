@@ -130,7 +130,7 @@ public class NapalmBombEntity extends PrimedTnt {
             for (int dy = -radius; dy <= radius; dy++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     if (dx * dx + dy * dy + dz * dz > radius * radius) continue;
-                    if (random.nextFloat() > 0.75f) continue;
+                    if (random.nextFloat() > 0.35f) continue;
 
                     BlockPos pos = center.offset(dx, dy, dz);
                     if (!level.getBlockState(pos).isAir()) continue;

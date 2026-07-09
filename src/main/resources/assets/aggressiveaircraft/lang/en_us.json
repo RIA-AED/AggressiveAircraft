@@ -29,5 +29,8 @@
   "item.aggressiveaircraft.napalm_bomb_bay": "Napalm Bomb Bay",
   "item.aggressiveaircraft.napalm_bomb_bay.description": "Drops napalm bombs that set the area ablaze",
   "item.aggressiveaircraft.napalm_bomb_ammo": "Napalm Bomb",
-  "entity.aggressiveaircraft.napalm_bomb": "Napalm Bomb"
+  "entity.aggressiveaircraft.napalm_bomb": "Napalm Bomb",
+  "block.aggressiveaircraft.ammo_supply_station": "Ammo Supply Station",
+  "block.aggressiveaircraft.fuel_supply_station": "Fuel Supply Station",
+  "block.aggressiveaircraft.repair_station": "Aircraft Repair Station"
 }

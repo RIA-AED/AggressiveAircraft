@@ -29,5 +29,8 @@
   "item.aggressiveaircraft.napalm_bomb_bay": "凝固汽油弹仓",
   "item.aggressiveaircraft.napalm_bomb_bay.description": "投放凝固汽油弹，将区域化为火海",
   "item.aggressiveaircraft.napalm_bomb_ammo": "凝固汽油弹",
-  "entity.aggressiveaircraft.napalm_bomb": "凝固汽油弹"
+  "entity.aggressiveaircraft.napalm_bomb": "凝固汽油弹",
+  "block.aggressiveaircraft.ammo_supply_station": "弹药补给站",
+  "block.aggressiveaircraft.fuel_supply_station": "油料补给站",
+  "block.aggressiveaircraft.repair_station": "飞机维修站"
 }

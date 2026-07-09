@@ -15,9 +15,12 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.*;
 import org.joml.Math;
+import org.slf4j.Logger;
 
 public class NapalmBombRenderer extends EntityRenderer<NapalmBombEntity> {
+    private static final Logger LOGGER = AggressiveAircraft.LOGGER;
     private static final ResourceLocation MODEL_ID = ResourceLocation.tryBuild(AggressiveAircraft.MODID, "napalm_bomb_entity");
+    private int logTickCounter = 0;
 
     public NapalmBombRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -41,11 +44,21 @@ public class NapalmBombRenderer extends EntityRenderer<NapalmBombEntity> {
             (float) entity.getDeltaMovement().z
         );
         float speed = velocity.length();
+        logTickCounter++;
+        if (logTickCounter % 10 == 0) {
+            float rawYaw = (float) Math.atan2(velocity.x, velocity.z);
+            float rawPitch = (float) Math.atan2(velocity.y, Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z));
+            LOGGER.info("[NapalmBomb] vel=({}, {}, {}) speed={} | rawYawDeg={} rawPitchDeg={} | applied: -yawDeg={} -pitchDeg={}",
+                String.format("%.2f", velocity.x), String.format("%.2f", velocity.y), String.format("%.2f", velocity.z),
+                String.format("%.2f", speed),
+                String.format("%.1f", Math.toDegrees(rawYaw)), String.format("%.1f", Math.toDegrees(rawPitch)),
+                String.format("%.1f", Math.toDegrees(-rawYaw)), String.format("%.1f", Math.toDegrees(-rawPitch)));
+        }
         if (speed > 0.01f) {
             float yaw = (float) Math.atan2(velocity.x, velocity.z);
             float pitch = (float) Math.atan2(velocity.y, Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z));
             matrixStack.mulPose(Axis.YP.rotation(-yaw));
-            matrixStack.mulPose(Axis.XP.rotation(pitch));
+            matrixStack.mulPose(Axis.XP.rotation(-pitch));
         }
 
         float time = (entity.level().getGameTime() % 24000 + partialTicks) / 20.0f;

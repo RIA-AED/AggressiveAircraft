@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "aggressiveaircraft:block/ammo_supply_station" },
+    "facing=south": { "model": "aggressiveaircraft:block/ammo_supply_station", "y": 180 },
+    "facing=west":  { "model": "aggressiveaircraft:block/ammo_supply_station", "y": 270 },
+    "facing=east":  { "model": "aggressiveaircraft:block/ammo_supply_station", "y": 90 }
+  }
+}
