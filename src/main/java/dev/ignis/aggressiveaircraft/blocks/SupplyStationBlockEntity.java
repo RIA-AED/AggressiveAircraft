@@ -36,6 +36,13 @@ public class SupplyStationBlockEntity extends BlockEntity {
         return lastSupplyTime > 0 && (level.getGameTime() - lastSupplyTime) < COOLDOWN_TICKS;
     }
 
+    public int getCooldownSecondsRemaining(Level level) {
+        if (lastSupplyTime <= 0) return 0;
+        long elapsed = level.getGameTime() - lastSupplyTime;
+        long remaining = COOLDOWN_TICKS - elapsed;
+        return remaining > 0 ? (int) ((remaining + 19) / 20) : 0; // ceil division
+    }
+
     // Raycast detection: 5m forward
     private static final double DETECT_RANGE = 5.0;
 
@@ -136,7 +143,9 @@ public class SupplyStationBlockEntity extends BlockEntity {
 
     /**
      * Replenish aircraft weapons with ammo from the container below.
-     * Uses round-robin: tries to keep ammo group counts balanced across different weapon types.
+     * Round-robin balances the number of occupied cargo slots per ammo type:
+     * always picks the ammo type with the fewest occupied slots to supply next.
+     * If an ammo type runs out in the container, it is skipped and others continue.
      */
     private static boolean handleAmmoReplenish(VehicleEntity vehicle, @Nullable IItemHandler container) {
         if (!(vehicle instanceof InventoryVehicleEntity inventoryVehicle)) return false;
@@ -145,119 +154,140 @@ public class SupplyStationBlockEntity extends BlockEntity {
         Map<Integer, List<Weapon>> allWeapons = inventoryVehicle.getWeapons();
         if (allWeapons.isEmpty()) return false;
 
-        // Collect all BulletWeapon instances with their ammo type info
-        record WeaponAmmoInfo(Weapon weapon, String ammoId, int consumption) {}
-        List<WeaponAmmoInfo> weaponInfos = new ArrayList<>();
+        // Collect weapons grouped by ammoId
+        record WeaponInfo(Weapon weapon, String ammoId) {}
+        Map<String, List<WeaponInfo>> ammoWeapons = new LinkedHashMap<>();
+        Set<String> allAmmoIds = new HashSet<>();
 
         for (List<Weapon> weaponList : allWeapons.values()) {
             for (Weapon weapon : weaponList) {
                 if (weapon instanceof BulletWeapon) {
                     String weaponItemId = BuiltInRegistries.ITEM.getKey(weapon.getStack().getItem()).toString();
                     String ammoId = getAmmoForWeapon(weaponItemId);
-                    int consumption = getAmmoConsumptionForWeapon(weaponItemId);
                     if (ammoId != null) {
-                        weaponInfos.add(new WeaponAmmoInfo(weapon, ammoId, consumption));
+                        ammoWeapons.computeIfAbsent(ammoId, k -> new ArrayList<>())
+                                .add(new WeaponInfo(weapon, ammoId));
+                        allAmmoIds.add(ammoId);
                     }
                 }
             }
         }
 
-        if (weaponInfos.isEmpty()) return false;
+        if (ammoWeapons.isEmpty()) return false;
 
-        // Round-robin replenish loop
+        Set<String> depleted = new HashSet<>(); // ammoIds no longer available in container
         boolean anyReplenished = false;
-        int maxIterations = 256; // safety limit
-        for (int iter = 0; iter < maxIterations; iter++) {
-            // Calculate groups (ammo / consumption) for each weapon
-            // Find the weapon with minimum groups
-            WeaponAmmoInfo targetWeapon = null;
-            double minGroups = Double.MAX_VALUE;
+        int maxIterations = 256;
 
-            for (WeaponAmmoInfo info : weaponInfos) {
-                BulletWeaponAccessor accessor = (BulletWeaponAccessor) info.weapon;
-                int ammo = accessor.getAmmo();
-                double groups = info.consumption > 0 ? (double) ammo / info.consumption : Double.MAX_VALUE;
-                if (groups < minGroups) {
-                    minGroups = groups;
-                    targetWeapon = info;
+        for (int iter = 0; iter < maxIterations; iter++) {
+            // Count how many cargo slots each ammoId occupies right now
+            Map<String, Integer> slotCounts = countCargoSlotsPerAmmo(inventoryVehicle, allAmmoIds);
+
+            // Pick the ammoId with fewest occupied slots (skip depleted)
+            String target = null;
+            int minSlots = Integer.MAX_VALUE;
+            for (String ammoId : allAmmoIds) {
+                if (depleted.contains(ammoId)) continue;
+                int slots = slotCounts.getOrDefault(ammoId, 0);
+                if (slots < minSlots) {
+                    minSlots = slots;
+                    target = ammoId;
                 }
             }
 
-            if (targetWeapon == null) break;
+            if (target == null) break; // all ammo types depleted
 
-            // Try to extract one ammo item from container — only if vehicle has cargo space
+            // Find and extract one item of the target ammo from container
             boolean replenished = false;
             for (int slot = 0; slot < container.getSlots(); slot++) {
                 ItemStack stack = container.getStackInSlot(slot);
                 if (stack.isEmpty()) continue;
                 String stackId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-                if (stackId.equals(targetWeapon.ammoId)) {
-                    // Extract one item
+                if (stackId.equals(target)) {
                     ItemStack extracted = container.extractItem(slot, 1, false);
                     if (!extracted.isEmpty()) {
-                        // Only accept into cargo slots — never weapon/upgrade/fuel slots
                         if (addToVehicleInventory(inventoryVehicle, extracted)) {
-                            BulletWeaponAccessor accessor = (BulletWeaponAccessor) targetWeapon.weapon;
-                            accessor.setAmmo(accessor.getAmmo() + 1);
+                            // Increment ammo on the weapon with least ammo for this type
+                            WeaponInfo leastWeapon = null;
+                            int leastAmmo = Integer.MAX_VALUE;
+                            for (WeaponInfo info : ammoWeapons.get(target)) {
+                                int ammo = ((BulletWeaponAccessor) info.weapon).getAmmo();
+                                if (ammo < leastAmmo) {
+                                    leastAmmo = ammo;
+                                    leastWeapon = info;
+                                }
+                            }
+                            if (leastWeapon != null) {
+                                ((BulletWeaponAccessor) leastWeapon.weapon).setAmmo(leastAmmo + 1);
+                            }
                             replenished = true;
                             anyReplenished = true;
                         } else {
-                            // Cargo full — return item to container
+                            // Cargo completely full — stop
                             container.insertItem(slot, extracted, false);
-                            replenished = false;
+                            return anyReplenished;
                         }
                     }
                     break;
                 }
             }
 
-            if (!replenished) break; // cargo full or no more matching ammo
+            if (!replenished) {
+                depleted.add(target); // this ammo type exhausted in container
+            }
         }
         return anyReplenished;
     }
 
     /**
-     * Try to insert an item stack into the vehicle's cargo slots only.
-     * Picks the slot with the lowest matching item count to balance
-     * distribution across left/right inventory panels.
-     * @return true if the item was placed, false if all cargo slots are full
+     * Count how many cargo slots each ammoId occupies in the vehicle.
+     */
+    private static Map<String, Integer> countCargoSlotsPerAmmo(InventoryVehicleEntity vehicle, Set<String> ammoIds) {
+        Map<String, Integer> counts = new HashMap<>();
+        for (String id : ammoIds) {
+            counts.put(id, 0);
+        }
+        VehicleInventoryDescription desc = vehicle.getInventoryDescription();
+        for (SlotDescription slotDesc : desc.getSlots(VehicleInventoryDescription.INVENTORY)) {
+            ItemStack stack = vehicle.getInventory().getItem(slotDesc.index());
+            if (!stack.isEmpty()) {
+                String stackId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+                if (ammoIds.contains(stackId)) {
+                    counts.merge(stackId, 1, Integer::sum);
+                }
+            }
+        }
+        return counts;
+    }
+
+    /**
+     * Try to insert a single item into the vehicle's cargo slots only.
+     * Prefers merging into an existing same-item stack (fill to maxStackSize),
+     * then falls back to an empty slot.
+     * @return true if placed, false if all cargo slots are full
      */
     private static boolean addToVehicleInventory(InventoryVehicleEntity vehicle, ItemStack stack) {
         VehicleInventoryDescription desc = vehicle.getInventoryDescription();
         List<SlotDescription> cargoSlots = desc.getSlots(VehicleInventoryDescription.INVENTORY);
 
-        // Find the cargo slot with the lowest existing count for this item type
-        int bestSlot = -1;
-        int lowestCount = Integer.MAX_VALUE;
-
+        // First pass: merge into an existing same-item slot that isn't full
         for (SlotDescription slotDesc : cargoSlots) {
             ItemStack existing = vehicle.getInventory().getItem(slotDesc.index());
-            if (existing.isEmpty()) {
-                // Empty slot is the best choice — use it immediately
-                bestSlot = slotDesc.index();
-                break;
-            }
             if (ItemStack.isSameItem(existing, stack) && existing.getCount() < existing.getMaxStackSize()) {
-                if (existing.getCount() < lowestCount) {
-                    lowestCount = existing.getCount();
-                    bestSlot = slotDesc.index();
-                }
+                existing.grow(1);
+                return true;
             }
         }
 
-        if (bestSlot >= 0) {
-            ItemStack existing = vehicle.getInventory().getItem(bestSlot);
-            if (existing.isEmpty()) {
-                vehicle.getInventory().setItem(bestSlot, stack.copy());
-            } else {
-                int canAdd = Math.min(stack.getCount(), existing.getMaxStackSize() - existing.getCount());
-                existing.grow(canAdd);
-                stack.shrink(canAdd);
+        // Second pass: use any empty slot
+        for (SlotDescription slotDesc : cargoSlots) {
+            if (vehicle.getInventory().getItem(slotDesc.index()).isEmpty()) {
+                vehicle.getInventory().setItem(slotDesc.index(), stack.copy());
+                return true;
             }
-            return true;
         }
 
-        return false; // All cargo slots are full — stop replenishing
+        return false;
     }
 
     // ==================== Fuel Replenish ====================
