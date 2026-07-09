@@ -36,18 +36,26 @@ public class NapalmBombRenderer extends EntityRenderer<NapalmBombEntity> {
 
         matrixStack.pushPose();
 
-        // Orient bomb based on velocity direction
-        Vec3f velocity = new Vec3f(
-            (float) entity.getDeltaMovement().x,
-            (float) entity.getDeltaMovement().y,
-            (float) entity.getDeltaMovement().z
-        );
-        float speed = velocity.length();
-        if (speed > 0.01f) {
-            float yaw = (float) Math.atan2(velocity.x, velocity.z);
-            float pitch = (float) Math.atan2(velocity.y, Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z));
+        if (entity.isOrientationFrozen()) {
+            // Use frozen orientation from the moment of landing
+            float yaw = entity.getFrozenYaw();
+            float pitch = entity.getFrozenPitch();
             matrixStack.mulPose(Axis.YP.rotation(yaw));
             matrixStack.mulPose(Axis.XP.rotation(-pitch));
+        } else {
+            // Orient bomb based on velocity direction (falling)
+            Vec3f velocity = new Vec3f(
+                (float) entity.getDeltaMovement().x,
+                (float) entity.getDeltaMovement().y,
+                (float) entity.getDeltaMovement().z
+            );
+            float speed = velocity.length();
+            if (speed > 0.01f) {
+                float yaw = (float) Math.atan2(velocity.x, velocity.z);
+                float pitch = (float) Math.atan2(velocity.y, Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z));
+                matrixStack.mulPose(Axis.YP.rotation(yaw));
+                matrixStack.mulPose(Axis.XP.rotation(-pitch));
+            }
         }
 
         float time = (entity.level().getGameTime() % 24000 + partialTicks) / 20.0f;

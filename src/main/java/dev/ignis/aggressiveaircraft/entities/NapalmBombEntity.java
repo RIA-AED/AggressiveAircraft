@@ -4,6 +4,9 @@ import dev.ignis.aggressiveaircraft.ModConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -21,8 +24,25 @@ import java.util.Random;
 public class NapalmBombEntity extends PrimedTnt {
     private static final Random random = new Random();
 
+    private static final EntityDataAccessor<Boolean> DATA_ORIENTATION_FROZEN =
+            SynchedEntityData.defineId(NapalmBombEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Float> DATA_FROZEN_PITCH =
+            SynchedEntityData.defineId(NapalmBombEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> DATA_FROZEN_YAW =
+            SynchedEntityData.defineId(NapalmBombEntity.class, EntityDataSerializers.FLOAT);
+
+    private boolean wasOnGround = false;
+
     public NapalmBombEntity(EntityType<? extends PrimedTnt> entityType, Level level) {
         super(entityType, level);
+    }
+
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(DATA_ORIENTATION_FROZEN, false);
+        this.entityData.define(DATA_FROZEN_PITCH, 0.0f);
+        this.entityData.define(DATA_FROZEN_YAW, 0.0f);
     }
 
     @Override
@@ -30,11 +50,31 @@ public class NapalmBombEntity extends PrimedTnt {
         if (!this.isNoGravity()) {
             this.setDeltaMovement(this.getDeltaMovement().add(0.0, -0.04, 0.0));
         }
+        // Save velocity before move() for orientation freezing on landing
+        var preMoveVelocity = this.getDeltaMovement();
         this.move(MoverType.SELF, this.getDeltaMovement());
         this.setDeltaMovement(this.getDeltaMovement().scale(0.98));
         if (this.onGround()) {
             this.setDeltaMovement(this.getDeltaMovement().multiply(0.7, -0.5, 0.7));
         }
+
+        // Freeze orientation on first landing to keep the falling angle
+        boolean nowOnGround = this.onGround();
+        if (!this.isOrientationFrozen() && nowOnGround && !wasOnGround) {
+            float vx = (float) preMoveVelocity.x;
+            float vy = (float) preMoveVelocity.y;
+            float vz = (float) preMoveVelocity.z;
+            float hSpeed = (float) Math.sqrt(vx * vx + vz * vz);
+            if (hSpeed > 0.001f || Math.abs(vy) > 0.001f) {
+                float yaw = (float) Math.atan2(vx, vz);
+                float pitch = (float) Math.atan2(vy, hSpeed);
+                this.entityData.set(DATA_FROZEN_PITCH, pitch);
+                this.entityData.set(DATA_FROZEN_YAW, yaw);
+                this.entityData.set(DATA_ORIENTATION_FROZEN, true);
+            }
+        }
+        wasOnGround = nowOnGround;
+
         int i = this.getFuse() - (onGround() ? 5 : 1);
         this.setFuse(i);
         if (i <= 0) {
@@ -167,5 +207,17 @@ public class NapalmBombEntity extends PrimedTnt {
             true, // fire
             Level.ExplosionInteraction.NONE
         );
+    }
+
+    public boolean isOrientationFrozen() {
+        return this.entityData.get(DATA_ORIENTATION_FROZEN);
+    }
+
+    public float getFrozenPitch() {
+        return this.entityData.get(DATA_FROZEN_PITCH);
+    }
+
+    public float getFrozenYaw() {
+        return this.entityData.get(DATA_FROZEN_YAW);
     }
 }
