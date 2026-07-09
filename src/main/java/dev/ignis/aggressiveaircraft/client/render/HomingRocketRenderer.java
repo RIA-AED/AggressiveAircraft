@@ -14,11 +14,15 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
+import com.mojang.logging.LogUtils;
 import org.joml.*;
 import net.minecraft.util.Mth;
 import org.joml.Math;
+import org.slf4j.Logger;
 
 public class HomingRocketRenderer extends EntityRenderer<HomingRocketEntity> {
+    private static final Logger LOGGER = LogUtils.getLogger();
+    private int logTickCounter = 0;
     // 模型ID：命名空间:路径（不含.bbmodel后缀）
     // 实际路径：assets/aggressiveaircraft/objects/homing_rocket_entity.bbmodel
     private static final ResourceLocation MODEL_ID = ResourceLocation.tryBuild(AggressiveAircraft.MODID, "homing_rocket_entity");
@@ -32,19 +36,28 @@ public class HomingRocketRenderer extends EntityRenderer<HomingRocketEntity> {
         BBModel bbModel = BBModelLoader.MODELS.get(MODEL_ID);
         if (bbModel == null) {
             // 模型未加载，渲染一个调试立方体
+            if (logTickCounter++ % 20 == 0) LOGGER.warn("HomingRocket model NOT FOUND in BBModelLoader! MODEL_ID={}", MODEL_ID);
             renderDebugCube(entity, entityYaw, partialTicks, matrixStack, buffer, packedLight);
             return;
         }
 
         matrixStack.pushPose();
 
-        // 使用实体自身的旋转角度（标准 Minecraft 实体渲染方式）
-        matrixStack.mulPose(Axis.YP.rotationDegrees(-entityYaw));
-        matrixStack.mulPose(Axis.XP.rotationDegrees(entity.getViewXRot(partialTicks)));
-        matrixStack.mulPose(Axis.ZP.rotationDegrees(entity.getRoll(partialTicks)));
+        // Orient rocket along velocity vector (same as bomb approach)
+        var vel = entity.getDeltaMovement();
+        float vx = (float) vel.x, vy = (float) vel.y, vz = (float) vel.z;
+        float speed = (float) Math.sqrt(vx * vx + vy * vy + vz * vz);
+        if (speed > 0.01f) {
+            float yaw = (float) Math.atan2(vx, vz);
+            float pitch = (float) Math.atan2(vy, Math.sqrt(vx * vx + vz * vz));
+            matrixStack.mulPose(Axis.YP.rotation(yaw));
+            matrixStack.mulPose(Axis.XP.rotation(-pitch));
+        }
 
         // 手动渲染模型（不依赖 VehicleEntity 泛型）
         float time = (entity.level().getGameTime() % 24000 + partialTicks) / 20.0f;
+        if (logTickCounter++ % 20 == 0) LOGGER.info("HomingRocket render: roots={}, vel=({},{},{})",
+            bbModel.root.size(), entity.getDeltaMovement().x, entity.getDeltaMovement().y, entity.getDeltaMovement().z);
         bbModel.root.forEach(object -> renderObject(bbModel, object, matrixStack, buffer, packedLight, time));
 
         matrixStack.popPose();
@@ -116,10 +129,16 @@ public class HomingRocketRenderer extends EntityRenderer<HomingRocketEntity> {
     private void renderDebugCube(HomingRocketEntity entity, float entityYaw, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
         matrixStack.pushPose();
 
-        // 位置和旋转
-        matrixStack.mulPose(Axis.YP.rotationDegrees(-entityYaw));
-        matrixStack.mulPose(Axis.XP.rotationDegrees(entity.getViewXRot(partialTicks)));
-        matrixStack.mulPose(Axis.ZP.rotationDegrees(entity.getRoll(partialTicks)));
+        // 位置和旋转（速度向量朝向）
+        var vel = entity.getDeltaMovement();
+        float vx = (float) vel.x, vy = (float) vel.y, vz = (float) vel.z;
+        float speed = (float) Math.sqrt(vx * vx + vy * vy + vz * vz);
+        if (speed > 0.01f) {
+            float yaw = (float) Math.atan2(vx, vz);
+            float pitch = (float) Math.atan2(vy, Math.sqrt(vx * vx + vz * vz));
+            matrixStack.mulPose(Axis.YP.rotation(yaw));
+            matrixStack.mulPose(Axis.XP.rotation(-pitch));
+        }
 
         // 渲染一个红色立方体作为调试
         PoseStack.Pose pose = matrixStack.last();

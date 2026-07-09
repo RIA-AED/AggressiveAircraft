@@ -33,9 +33,16 @@ public class RocketPodRocketRenderer extends EntityRenderer<RocketPodRocketEntit
 
         matrixStack.pushPose();
 
-        matrixStack.mulPose(Axis.YP.rotationDegrees(-entityYaw));
-        matrixStack.mulPose(Axis.XP.rotationDegrees(entity.getViewXRot(partialTicks)));
-        matrixStack.mulPose(Axis.ZP.rotationDegrees(entity.getRoll(partialTicks)));
+        // Orient rocket along velocity vector (same as bomb approach)
+        var vel = entity.getDeltaMovement();
+        float vx = (float) vel.x, vy = (float) vel.y, vz = (float) vel.z;
+        float speed = (float) Math.sqrt(vx * vx + vy * vy + vz * vz);
+        if (speed > 0.01f) {
+            float yaw = (float) Math.atan2(vx, vz);
+            float pitch = (float) Math.atan2(vy, Math.sqrt(vx * vx + vz * vz));
+            matrixStack.mulPose(Axis.YP.rotation(yaw));
+            matrixStack.mulPose(Axis.XP.rotation(-pitch));
+        }
 
         float time = (entity.level().getGameTime() % 24000 + partialTicks) / 20.0f;
         bbModel.root.forEach(object -> renderObject(bbModel, object, matrixStack, buffer, packedLight, time));
@@ -105,9 +112,16 @@ public class RocketPodRocketRenderer extends EntityRenderer<RocketPodRocketEntit
     private void renderDebugCube(RocketPodRocketEntity entity, float entityYaw, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
         matrixStack.pushPose();
 
-        matrixStack.mulPose(Axis.YP.rotationDegrees(-entityYaw));
-        matrixStack.mulPose(Axis.XP.rotationDegrees(entity.getViewXRot(partialTicks)));
-        matrixStack.mulPose(Axis.ZP.rotationDegrees(entity.getRoll(partialTicks)));
+        // 位置和旋转（速度向量朝向）
+        var vel = entity.getDeltaMovement();
+        float vx = (float) vel.x, vy = (float) vel.y, vz = (float) vel.z;
+        float speed = (float) Math.sqrt(vx * vx + vy * vy + vz * vz);
+        if (speed > 0.01f) {
+            float yaw = (float) Math.atan2(vx, vz);
+            float pitch = (float) Math.atan2(vy, Math.sqrt(vx * vx + vz * vz));
+            matrixStack.mulPose(Axis.YP.rotation(yaw));
+            matrixStack.mulPose(Axis.XP.rotation(-pitch));
+        }
 
         PoseStack.Pose pose = matrixStack.last();
         Matrix4f matrix4f = pose.pose();
