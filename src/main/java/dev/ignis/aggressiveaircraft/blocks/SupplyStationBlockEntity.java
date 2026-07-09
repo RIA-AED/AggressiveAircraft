@@ -11,7 +11,9 @@ import immersive_aircraft.entity.weapon.Weapon;
 import immersive_aircraft.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -25,8 +27,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class SupplyStationBlockEntity extends BlockEntity {
-    private int tickOffset = -1; // -1 means uninitialized
+    private int tickOffset = -1;
+    private long lastSupplyTime = 0;
     private static final int CHECK_INTERVAL = 5;
+    private static final int COOLDOWN_TICKS = 1200; // 60 seconds
+
+    private boolean isInCooldown(Level level) {
+        return lastSupplyTime > 0 && (level.getGameTime() - lastSupplyTime) < COOLDOWN_TICKS;
+    }
 
     // Raycast detection: 5m forward
     private static final double DETECT_RANGE = 5.0;
@@ -38,30 +46,47 @@ public class SupplyStationBlockEntity extends BlockEntity {
     public static void tick(Level level, BlockPos pos, BlockState state, SupplyStationBlockEntity be) {
         if (level.isClientSide) return;
 
-        // Initialize tick offset randomly (0-4) on first tick, so not all blocks check simultaneously
+        // Initialize tick offset randomly (0-4) on first tick
         if (be.tickOffset < 0) {
             be.tickOffset = level.random.nextInt(CHECK_INTERVAL);
+        }
+
+        SupplyStationBlock block = (SupplyStationBlock) state.getBlock();
+        SupplyStationBlock.StationType stationType = block.getStationType();
+
+        // Smoke particles during cooldown — every tick, independent of staggered check
+        if (stationType != SupplyStationBlock.StationType.REPAIR && be.isInCooldown(level)) {
+            spawnSmokeParticles(level, pos);
         }
 
         // Staggered check: only run every CHECK_INTERVAL ticks using per-block offset
         if ((level.getGameTime() + be.tickOffset) % CHECK_INTERVAL != 0) return;
 
-        SupplyStationBlock block = (SupplyStationBlock) state.getBlock();
-        SupplyStationBlock.StationType stationType = block.getStationType();
+        // Skip supply if in cooldown for ammo/fuel (smoke already handled above)
+        if (stationType != SupplyStationBlock.StationType.REPAIR && be.isInCooldown(level)) {
+            return;
+        }
+
         Direction facing = state.getValue(SupplyStationBlock.FACING);
 
         // Raycast from block front face to find aircraft within 5m
         List<VehicleEntity> aircraft = raycastAircraft(level, pos, facing);
 
         for (VehicleEntity vehicle : aircraft) {
-            // Get container directly below the block
             BlockPos belowPos = pos.below();
             IItemHandler container = getContainerBelow(level, belowPos);
 
-            switch (stationType) {
+            boolean supplied = switch (stationType) {
                 case AMMO -> handleAmmoReplenish(vehicle, container);
                 case FUEL -> handleFuelReplenish(vehicle, container);
                 case REPAIR -> handleRepair(vehicle);
+            };
+
+            if (supplied) {
+                spawnGreenParticles(level, pos);
+                if (stationType != SupplyStationBlock.StationType.REPAIR) {
+                    be.lastSupplyTime = level.getGameTime();
+                }
             }
         }
     }
@@ -113,12 +138,12 @@ public class SupplyStationBlockEntity extends BlockEntity {
      * Replenish aircraft weapons with ammo from the container below.
      * Uses round-robin: tries to keep ammo group counts balanced across different weapon types.
      */
-    private static void handleAmmoReplenish(VehicleEntity vehicle, @Nullable IItemHandler container) {
-        if (!(vehicle instanceof InventoryVehicleEntity inventoryVehicle)) return;
-        if (container == null) return;
+    private static boolean handleAmmoReplenish(VehicleEntity vehicle, @Nullable IItemHandler container) {
+        if (!(vehicle instanceof InventoryVehicleEntity inventoryVehicle)) return false;
+        if (container == null) return false;
 
         Map<Integer, List<Weapon>> allWeapons = inventoryVehicle.getWeapons();
-        if (allWeapons.isEmpty()) return;
+        if (allWeapons.isEmpty()) return false;
 
         // Collect all BulletWeapon instances with their ammo type info
         record WeaponAmmoInfo(Weapon weapon, String ammoId, int consumption) {}
@@ -137,9 +162,10 @@ public class SupplyStationBlockEntity extends BlockEntity {
             }
         }
 
-        if (weaponInfos.isEmpty()) return;
+        if (weaponInfos.isEmpty()) return false;
 
         // Round-robin replenish loop
+        boolean anyReplenished = false;
         int maxIterations = 256; // safety limit
         for (int iter = 0; iter < maxIterations; iter++) {
             // Calculate groups (ammo / consumption) for each weapon
@@ -174,6 +200,7 @@ public class SupplyStationBlockEntity extends BlockEntity {
                             BulletWeaponAccessor accessor = (BulletWeaponAccessor) targetWeapon.weapon;
                             accessor.setAmmo(accessor.getAmmo() + 1);
                             replenished = true;
+                            anyReplenished = true;
                         } else {
                             // Cargo full — return item to container
                             container.insertItem(slot, extracted, false);
@@ -186,6 +213,7 @@ public class SupplyStationBlockEntity extends BlockEntity {
 
             if (!replenished) break; // cargo full or no more matching ammo
         }
+        return anyReplenished;
     }
 
     /**
@@ -246,13 +274,15 @@ public class SupplyStationBlockEntity extends BlockEntity {
      * </ul>
      * The aircraft's own refuel() tick will convert boiler items to fuel time.
      */
-    private static void handleFuelReplenish(VehicleEntity vehicle, @Nullable IItemHandler container) {
-        if (!(vehicle instanceof InventoryVehicleEntity inventoryVehicle)) return;
-        if (container == null) return;
+    private static boolean handleFuelReplenish(VehicleEntity vehicle, @Nullable IItemHandler container) {
+        if (!(vehicle instanceof InventoryVehicleEntity inventoryVehicle)) return false;
+        if (container == null) return false;
 
         VehicleInventoryDescription desc = inventoryVehicle.getInventoryDescription();
         List<SlotDescription> boilerSlots = desc.getSlots(VehicleInventoryDescription.BOILER);
-        if (boilerSlots.isEmpty()) return;
+        if (boilerSlots.isEmpty()) return false;
+
+        boolean fuelSupplied = false;
 
         for (SlotDescription boilerSlot : boilerSlots) {
             ItemStack existing = inventoryVehicle.getInventory().getItem(boilerSlot.index());
@@ -266,6 +296,7 @@ public class SupplyStationBlockEntity extends BlockEntity {
                         ItemStack extracted = container.extractItem(slot, toTake, false);
                         if (!extracted.isEmpty()) {
                             inventoryVehicle.getInventory().setItem(boilerSlot.index(), extracted.copy());
+                            fuelSupplied = true;
                         }
                         break; // Filled this slot, move to next
                     }
@@ -281,6 +312,7 @@ public class SupplyStationBlockEntity extends BlockEntity {
                         if (!extracted.isEmpty()) {
                             existing.grow(extracted.getCount());
                             space -= extracted.getCount();
+                            fuelSupplied = true;
                             if (space <= 0) break;
                         }
                     }
@@ -288,6 +320,7 @@ public class SupplyStationBlockEntity extends BlockEntity {
             }
             // If boiler slot is full or contains non-fuel, skip
         }
+        return fuelSupplied;
     }
 
     // ==================== Repair ====================
@@ -295,9 +328,33 @@ public class SupplyStationBlockEntity extends BlockEntity {
     /**
      * Repair the aircraft to full health.
      */
-    private static void handleRepair(VehicleEntity vehicle) {
-        if (!vehicle.isAlive()) return;
+    private static boolean handleRepair(VehicleEntity vehicle) {
+        if (!vehicle.isAlive()) return false;
+        if (vehicle.getHealth() >= 1.0f) return false; // already full health
         vehicle.setHealth(1.0f); // 100% health
+        return true;
+    }
+
+    // ==================== Particles ====================
+
+    private static void spawnSmokeParticles(Level level, BlockPos pos) {
+        if (!(level instanceof ServerLevel serverLevel)) return;
+        for (int i = 0; i < 2; i++) {
+            double x = pos.getX() + 0.5 + (level.random.nextDouble() - 0.5) * 0.4;
+            double y = pos.getY() + 0.15 + level.random.nextDouble() * 0.2;
+            double z = pos.getZ() + 0.5 + (level.random.nextDouble() - 0.5) * 0.4;
+            serverLevel.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, x, y, z, 1, 0.0, 0.02, 0.0, 0.01);
+        }
+    }
+
+    private static void spawnGreenParticles(Level level, BlockPos pos) {
+        if (!(level instanceof ServerLevel serverLevel)) return;
+        for (int i = 0; i < 5; i++) {
+            double x = pos.getX() + 0.5 + (level.random.nextDouble() - 0.5) * 0.8;
+            double y = pos.getY() + 0.3 + level.random.nextDouble() * 0.6;
+            double z = pos.getZ() + 0.5 + (level.random.nextDouble() - 0.5) * 0.8;
+            serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER, x, y, z, 1, 0.0, 0.0, 0.0, 0.2);
+        }
     }
 
     // ==================== Weapon -> Ammo Mapping ====================
