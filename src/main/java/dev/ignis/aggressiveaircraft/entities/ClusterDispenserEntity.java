@@ -97,12 +97,6 @@ public class ClusterDispenserEntity extends AbstractHurtingProjectile {
 
     private void updateFlightPath() {
         Vec3 currentVel = this.getDeltaMovement();
-        
-        // 调试输出
-        if (lifetime == 0 || lifetime == 1) {
-            AggressiveAircraft.LOGGER.debug("[ClusterDispenser] tick=" + lifetime + " velocitySet=" + velocitySet
-                + " inherited=" + inheritedVelocity + " currentVel=" + currentVel);
-        }
 
         if (lifetime < DESCENT_START_TIME) {
             // 前1秒：保持当前速度（从BulletWeapon.fire()继承的飞机速度）

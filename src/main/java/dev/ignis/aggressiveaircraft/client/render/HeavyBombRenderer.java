@@ -18,7 +18,6 @@ import org.joml.Math;
 import org.slf4j.Logger;
 
 public class HeavyBombRenderer extends EntityRenderer<HeavyBombEntity> {
-    private static final Logger LOGGER = AggressiveAircraft.LOGGER;
     private static final ResourceLocation MODEL_ID = ResourceLocation.tryBuild(AggressiveAircraft.MODID, "heavy_bomb_entity");
     private int logTickCounter = 0;
 
@@ -44,20 +43,10 @@ public class HeavyBombRenderer extends EntityRenderer<HeavyBombEntity> {
             (float) entity.getDeltaMovement().z
         );
         float speed = velocity.length();
-        logTickCounter++;
-        if (logTickCounter % 10 == 0) {
-            float rawYaw = (float) Math.atan2(velocity.x, velocity.z);
-            float rawPitch = (float) Math.atan2(velocity.y, Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z));
-            LOGGER.info("[HeavyBomb] vel=({}, {}, {}) speed={} | rawYawDeg={} rawPitchDeg={} | applied: -yawDeg={} -pitchDeg={}",
-                String.format("%.2f", velocity.x), String.format("%.2f", velocity.y), String.format("%.2f", velocity.z),
-                String.format("%.2f", speed),
-                String.format("%.1f", Math.toDegrees(rawYaw)), String.format("%.1f", Math.toDegrees(rawPitch)),
-                String.format("%.1f", Math.toDegrees(-rawYaw)), String.format("%.1f", Math.toDegrees(-rawPitch)));
-        }
         if (speed > 0.01f) {
             float yaw = (float) Math.atan2(velocity.x, velocity.z);
             float pitch = (float) Math.atan2(velocity.y, Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z));
-            matrixStack.mulPose(Axis.YP.rotation(-yaw));
+            matrixStack.mulPose(Axis.YP.rotation(yaw));
             matrixStack.mulPose(Axis.XP.rotation(-pitch));
         }
 

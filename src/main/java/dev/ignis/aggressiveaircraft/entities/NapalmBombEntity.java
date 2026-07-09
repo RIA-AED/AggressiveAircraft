@@ -124,13 +124,19 @@ public class NapalmBombEntity extends PrimedTnt {
             entity.hurt(fireSource, fireDamage);
         }
 
-        // 2. Try to ignite block surfaces within radius (0.75 probability)
+        // 2. Try to ignite block surfaces within radius, probability decays with distance
         BlockPos center = this.blockPosition();
+        float maxIgniteChance = ModConfig.NAPALM_BOMB_IGNITE_CHANCE.get().floatValue();
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dy = -radius; dy <= radius; dy++) {
                 for (int dz = -radius; dz <= radius; dz++) {
-                    if (dx * dx + dy * dy + dz * dz > radius * radius) continue;
-                    if (random.nextFloat() > 0.35f) continue;
+                    int distSq = dx * dx + dy * dy + dz * dz;
+                    if (distSq > radius * radius) continue;
+
+                    // Probability decays linearly from maxIgniteChance at center to 0 at edge
+                    float distanceFactor = (float) Math.sqrt(distSq) / radius;
+                    float igniteChance = maxIgniteChance * (1.0f - distanceFactor);
+                    if (random.nextFloat() > igniteChance) continue;
 
                     BlockPos pos = center.offset(dx, dy, dz);
                     if (!level.getBlockState(pos).isAir()) continue;

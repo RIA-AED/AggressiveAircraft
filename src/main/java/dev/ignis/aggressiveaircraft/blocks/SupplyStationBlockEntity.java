@@ -2,8 +2,6 @@ package dev.ignis.aggressiveaircraft.blocks;
 
 import dev.ignis.aggressiveaircraft.ModConfig;
 import dev.ignis.aggressiveaircraft.mixin.BulletWeaponAccessor;
-import dev.ignis.aggressiveaircraft.mixin.EngineVehicleAccessor;
-import immersive_aircraft.entity.EngineVehicle;
 import immersive_aircraft.entity.InventoryVehicleEntity;
 import immersive_aircraft.entity.VehicleEntity;
 import immersive_aircraft.entity.inventory.VehicleInventoryDescription;
@@ -161,8 +159,8 @@ public class SupplyStationBlockEntity extends BlockEntity {
 
             if (targetWeapon == null) break;
 
-            // Try to extract one ammo item from container
-            boolean found = false;
+            // Try to extract one ammo item from container — only if vehicle has cargo space
+            boolean replenished = false;
             for (int slot = 0; slot < container.getSlots(); slot++) {
                 ItemStack stack = container.getStackInSlot(slot);
                 if (stack.isEmpty()) continue;
@@ -171,27 +169,32 @@ public class SupplyStationBlockEntity extends BlockEntity {
                     // Extract one item
                     ItemStack extracted = container.extractItem(slot, 1, false);
                     if (!extracted.isEmpty()) {
-                        // Add to vehicle inventory (cargo slots preferred)
-                        addToVehicleInventory(inventoryVehicle, extracted);
-                        // Directly increment weapon ammo for immediate effect
-                        BulletWeaponAccessor accessor = (BulletWeaponAccessor) targetWeapon.weapon;
-                        accessor.setAmmo(accessor.getAmmo() + 1); // each item = 1 ammo point
-                        found = true;
+                        // Only accept into cargo slots — never weapon/upgrade/fuel slots
+                        if (addToVehicleInventory(inventoryVehicle, extracted)) {
+                            BulletWeaponAccessor accessor = (BulletWeaponAccessor) targetWeapon.weapon;
+                            accessor.setAmmo(accessor.getAmmo() + 1);
+                            replenished = true;
+                        } else {
+                            // Cargo full — return item to container
+                            container.insertItem(slot, extracted, false);
+                            replenished = false;
+                        }
                     }
                     break;
                 }
             }
 
-            if (!found) break; // no more matching ammo in container
+            if (!replenished) break; // cargo full or no more matching ammo
         }
     }
 
     /**
-     * Try to insert an item stack into the vehicle's cargo slots.
+     * Try to insert an item stack into the vehicle's cargo slots only.
      * Picks the slot with the lowest matching item count to balance
      * distribution across left/right inventory panels.
+     * @return true if the item was placed, false if all cargo slots are full
      */
-    private static void addToVehicleInventory(InventoryVehicleEntity vehicle, ItemStack stack) {
+    private static boolean addToVehicleInventory(InventoryVehicleEntity vehicle, ItemStack stack) {
         VehicleInventoryDescription desc = vehicle.getInventoryDescription();
         List<SlotDescription> cargoSlots = desc.getSlots(VehicleInventoryDescription.INVENTORY);
 
@@ -223,69 +226,67 @@ public class SupplyStationBlockEntity extends BlockEntity {
                 existing.grow(canAdd);
                 stack.shrink(canAdd);
             }
-            return;
+            return true;
         }
 
-        // If cargo slots are full, try any slot
-        for (int i = 0; i < vehicle.getInventory().getContainerSize(); i++) {
-            ItemStack existing = vehicle.getInventory().getItem(i);
-            if (existing.isEmpty()) {
-                vehicle.getInventory().setItem(i, stack.copy());
-                return;
-            } else if (ItemStack.isSameItem(existing, stack) && existing.getCount() < existing.getMaxStackSize()) {
-                int canAdd = Math.min(stack.getCount(), existing.getMaxStackSize() - existing.getCount());
-                existing.grow(canAdd);
-                stack.shrink(canAdd);
-                if (stack.isEmpty()) return;
-            }
-        }
-        // If no space, the item is lost (shouldn't happen with extractItem)
+        return false; // All cargo slots are full — stop replenishing
     }
 
     // ==================== Fuel Replenish ====================
 
     /**
-     * Replenish aircraft fuel from the container below.
-     * Each fuel slot is filled independently; if the container runs dry,
-     * we break out of the current slot's loop and try the remaining slots
-     * on the next tick (when the container may have been restocked).
+     * Replenish aircraft fuel by filling the vehicle's boiler slot(s)
+     * with fuel items from the container below.
+     * <p>
+     * Logic per boiler slot:
+     * <ul>
+     * <li>If empty — take any fuel item from the container and fill the slot.</li>
+     * <li>If has fuel but not full — merge same fuel type from the container.</li>
+     * <li>If full — skip.</li>
+     * </ul>
+     * The aircraft's own refuel() tick will convert boiler items to fuel time.
      */
     private static void handleFuelReplenish(VehicleEntity vehicle, @Nullable IItemHandler container) {
-        if (!(vehicle instanceof EngineVehicle engineVehicle)) return;
+        if (!(vehicle instanceof InventoryVehicleEntity inventoryVehicle)) return;
         if (container == null) return;
 
-        EngineVehicleAccessor accessor = (EngineVehicleAccessor) engineVehicle;
-        int[] fuel = accessor.getFuelArray();
+        VehicleInventoryDescription desc = inventoryVehicle.getInventoryDescription();
+        List<SlotDescription> boilerSlots = desc.getSlots(VehicleInventoryDescription.BOILER);
+        if (boilerSlots.isEmpty()) return;
 
-        for (int i = 0; i < fuel.length; i++) {
-            while (fuel[i] < EngineVehicle.TARGET_FUEL) {
-                // Find any fuel item in the container
-                int fuelSlot = -1;
+        for (SlotDescription boilerSlot : boilerSlots) {
+            ItemStack existing = inventoryVehicle.getInventory().getItem(boilerSlot.index());
+
+            if (existing.isEmpty()) {
+                // Empty boiler slot — fill with any fuel from container
                 for (int slot = 0; slot < container.getSlots(); slot++) {
-                    ItemStack stack = container.getStackInSlot(slot);
-                    if (!stack.isEmpty() && Utils.getFuelTime(stack) > 0) {
-                        fuelSlot = slot;
-                        break;
+                    ItemStack containerStack = container.getStackInSlot(slot);
+                    if (!containerStack.isEmpty() && Utils.getFuelTime(containerStack) > 0) {
+                        int toTake = Math.min(containerStack.getCount(), containerStack.getMaxStackSize());
+                        ItemStack extracted = container.extractItem(slot, toTake, false);
+                        if (!extracted.isEmpty()) {
+                            inventoryVehicle.getInventory().setItem(boilerSlot.index(), extracted.copy());
+                        }
+                        break; // Filled this slot, move to next
                     }
                 }
-
-                if (fuelSlot < 0) break; // Container empty — stop filling this slot, retry next tick
-
-                int fuelTime = Utils.getFuelTime(container.getStackInSlot(fuelSlot));
-                if (fuelTime <= 0) break;
-
-                // Extract one item and add its fuel value
-                ItemStack extracted = container.extractItem(fuelSlot, 1, false);
-                if (!extracted.isEmpty()) {
-                    fuel[i] += fuelTime;
-                    // Cap at TARGET_FUEL to avoid overflow
-                    if (fuel[i] > EngineVehicle.TARGET_FUEL) {
-                        fuel[i] = EngineVehicle.TARGET_FUEL;
+            } else if (existing.getCount() < existing.getMaxStackSize() && Utils.getFuelTime(existing) > 0) {
+                // Boiler slot has fuel but not full — merge same type from container
+                int space = existing.getMaxStackSize() - existing.getCount();
+                for (int slot = 0; slot < container.getSlots(); slot++) {
+                    ItemStack containerStack = container.getStackInSlot(slot);
+                    if (!containerStack.isEmpty() && ItemStack.isSameItem(containerStack, existing)) {
+                        int toTake = Math.min(containerStack.getCount(), space);
+                        ItemStack extracted = container.extractItem(slot, toTake, false);
+                        if (!extracted.isEmpty()) {
+                            existing.grow(extracted.getCount());
+                            space -= extracted.getCount();
+                            if (space <= 0) break;
+                        }
                     }
-                } else {
-                    break; // couldn't extract
                 }
             }
+            // If boiler slot is full or contains non-fuel, skip
         }
     }
 

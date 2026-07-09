@@ -6,6 +6,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(EngineVehicle.class)
 public interface EngineVehicleAccessor {
-    @Accessor("fuel")
+    @Accessor(value = "fuel",remap = false)
     int[] getFuelArray();
 }

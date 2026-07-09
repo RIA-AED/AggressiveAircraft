@@ -70,6 +70,7 @@ public class ModConfig {
     public static final ForgeConfigSpec.IntValue NAPALM_BOMB_FIRE_RADIUS;
     public static final ForgeConfigSpec.IntValue NAPALM_BOMB_FIRE_DAMAGE;
     public static final ForgeConfigSpec.IntValue NAPALM_BOMB_BURN_DURATION;
+    public static final ForgeConfigSpec.DoubleValue NAPALM_BOMB_IGNITE_CHANCE;
 
     // Inventory Control Config
     public static final ForgeConfigSpec.DoubleValue INVENTORY_HEIGHT_THRESHOLD;
@@ -229,6 +230,10 @@ public class ModConfig {
         NAPALM_BOMB_BURN_DURATION = BUILDER
                 .comment("Duration in seconds that entities are set on fire")
                 .defineInRange("burn_duration", 20, 1, 120);
+        NAPALM_BOMB_IGNITE_CHANCE = BUILDER
+                .comment("Maximum ignite probability at center of fire radius. " +
+                        "Decays linearly to 0 at the edge. Higher values = denser fire.")
+                .defineInRange("ignite_chance", 0.9, 0.0, 1.0);
         BUILDER.pop();
 
         BUILDER.push("inventory_control");

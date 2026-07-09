@@ -7,12 +7,12 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(BulletWeapon.class)
 public interface BulletWeaponAccessor {
-    @Accessor
+    @Accessor(remap = false)
     int getAmmo();
 
-    @Accessor
+    @Accessor(remap = false)
     void setAmmo(int ammo);
 
-    @Accessor
+    @Accessor(remap = false)
     ItemStack getAmmoStack();
 }

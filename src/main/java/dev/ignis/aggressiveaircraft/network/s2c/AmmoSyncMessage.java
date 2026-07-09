@@ -52,8 +52,8 @@ public class AmmoSyncMessage extends Message {
 
     @Override
     public void receive(Player player) {
-        if (player.level().isClientSide()) {
-            ClientAmmoData.update(vehicleId, slotIndices, remainingShots);
-        }
+        // player is null on client side for S2C messages (Forge's getSender() returns null).
+        // AmmoSyncMessage is always S2C, so we always update on the receiving (client) side.
+        ClientAmmoData.update(vehicleId, slotIndices, remainingShots);
     }
 }
