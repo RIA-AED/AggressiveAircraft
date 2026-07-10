@@ -12,9 +12,11 @@
     "InventoryVehicleEntityMixin",
     "SlotMixin",
     "SparseSimpleInventoryMixin",
+    "VehicleEntityMixin",
     "VehicleScreenHandlerMixin"
   ],
   "client": [
+    "client.LocalPlayerMixin",
     "client.VehicleEntityClientMixin"
   ],
   "injectors": {
