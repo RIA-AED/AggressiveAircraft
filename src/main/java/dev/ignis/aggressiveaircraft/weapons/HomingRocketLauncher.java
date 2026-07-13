@@ -138,7 +138,8 @@ public class HomingRocketLauncher extends BulletWeapon {
 
         rocket.setDamage(ModConfig.HOMING_ROCKET_DAMAGE.get());
         rocket.setExplosionPower(ModConfig.HOMING_ROCKET_EXPLOSION_POWER.get().floatValue());
-        rocket.setOwner(shooter);
+        Entity pilot = getEntity().getControllingPassenger();
+        rocket.setOwner(pilot != null ? pilot : shooter);
         rocket.setPos(position.x(), position.y(), position.z());
 
         // 服务端重新锁定目标（客户端锁定仅用于判断是否可发射）

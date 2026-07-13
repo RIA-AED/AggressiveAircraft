@@ -50,7 +50,8 @@ public class RotaryCannon extends BulletWeapon {
         bullet.setDamage(ModConfig.ROTARY_CANNON_DAMAGE.get());
         bullet.setExplosionPower(ModConfig.ROTARY_CANNON_EXPLOSION_POWER.get());
         bullet.setDestroyBlocks(ModConfig.ROTARY_CANNON_DESTROY_BLOCKS.get());
-        bullet.setOwner(shooter);
+        Entity pilot = getEntity().getControllingPassenger();
+        bullet.setOwner(pilot != null ? pilot : shooter);
         bullet.setPos(position.x(), position.y(), position.z());
         bullet.shoot(direction.x(), direction.y(), direction.z(), getVelocity(), getInaccuracy());
         return bullet;

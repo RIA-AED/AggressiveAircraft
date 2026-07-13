@@ -48,7 +48,8 @@ public class MachineGun extends BulletWeapon {
         assert bullet != null;
         bullet.setDamage(ModConfig.MACHINE_GUN_DAMAGE.get());
         bullet.setPos(position.x(), position.y(), position.z());
-        bullet.setOwner(shooter);
+        Entity pilot = getEntity().getControllingPassenger();
+        bullet.setOwner(pilot != null ? pilot : shooter);
         bullet.shoot(direction.x(), direction.y(), direction.z(), getVelocity(), getInaccuracy());
         return bullet;
     }

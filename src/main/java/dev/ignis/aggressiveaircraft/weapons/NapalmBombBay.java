@@ -2,6 +2,7 @@ package dev.ignis.aggressiveaircraft.weapons;
 
 import dev.ignis.aggressiveaircraft.ModConfig;
 import dev.ignis.aggressiveaircraft.entities.NapalmBombEntity;
+import dev.ignis.aggressiveaircraft.mixin.PrimedTntAccessor;
 import immersive_aircraft.cobalt.network.NetworkHandler;
 import immersive_aircraft.entity.VehicleEntity;
 import immersive_aircraft.entity.misc.WeaponMount;
@@ -43,6 +44,9 @@ public class NapalmBombBay extends BulletWeapon {
     protected Entity getBullet(Entity shooter, Vector4f position, Vector3f direction) {
         NapalmBombEntity bomb = NAPALM_BOMB.get().create(shooter.level());
         assert bomb != null;
+        ((PrimedTntAccessor) bomb).setOwner(
+            shooter instanceof net.minecraft.world.entity.LivingEntity le ? le : null
+        );
         bomb.setPos(position.x(), position.y(), position.z());
 
         // 炸弹继承飞机的速度

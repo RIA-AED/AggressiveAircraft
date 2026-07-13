@@ -49,7 +49,8 @@ public class RocketPod extends BulletWeapon {
         rocket.setDamage(ModConfig.ROCKET_POD_DAMAGE.get());
         rocket.setExplosionPower(ModConfig.ROCKET_POD_EXPLOSION_POWER.get().floatValue());
         rocket.setDestroyBlocks(ModConfig.ROCKET_POD_DESTROY_BLOCKS.get());
-        rocket.setOwner(shooter);
+        Entity pilot = getEntity().getControllingPassenger();
+        rocket.setOwner(pilot != null ? pilot : shooter);
         rocket.setPos(position.x(), position.y(), position.z());
 
         // 继承载具速度

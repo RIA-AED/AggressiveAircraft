@@ -43,8 +43,10 @@ public class ClusterDispenser extends BulletWeapon {
         var dispenser = ModEntities.CLUSTER_DISPENSER.get().create(shooter.level());
         assert dispenser != null;
 
-        dispenser.setOwner(shooter);
         dispenser.setPos(position.x(), position.y(), position.z());
+
+        Entity pilot = getEntity().getControllingPassenger();
+        dispenser.setOwner(pilot != null ? pilot : shooter);
 
         // 获取飞机速度
         Vec3 planeVel = getEntity().getSpeedVector();

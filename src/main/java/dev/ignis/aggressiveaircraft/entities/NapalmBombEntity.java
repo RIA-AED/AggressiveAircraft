@@ -158,7 +158,7 @@ public class NapalmBombEntity extends PrimedTnt {
         // 1. Ignite entities within radius and deal fire damage
         AABB aabb = new AABB(x - radius, y - radius, z - radius, x + radius, y + radius, z + radius);
         List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, aabb, e -> e.distanceToSqr(this) <= (double) radius * radius);
-        DamageSource fireSource = level.damageSources().onFire();
+        DamageSource fireSource = level().damageSources().thrown(this, this.getOwner());
         for (LivingEntity entity : entities) {
             entity.setSecondsOnFire(burnDuration);
             entity.hurt(fireSource, fireDamage);

@@ -2,6 +2,7 @@ package dev.ignis.aggressiveaircraft.weapons;
 
 import dev.ignis.aggressiveaircraft.ModConfig;
 import dev.ignis.aggressiveaircraft.entities.HeavyBombEntity;
+import dev.ignis.aggressiveaircraft.mixin.PrimedTntAccessor;
 import immersive_aircraft.cobalt.network.NetworkHandler;
 import immersive_aircraft.entity.VehicleEntity;
 import immersive_aircraft.entity.misc.WeaponMount;
@@ -43,6 +44,9 @@ public class HeavyBombBay extends BulletWeapon {
     protected Entity getBullet(Entity shooter, Vector4f position, Vector3f direction) {
         HeavyBombEntity bomb = HEAVY_BOMB.get().create(shooter.level());
         assert bomb != null;
+        ((PrimedTntAccessor) bomb).setOwner(
+            shooter instanceof net.minecraft.world.entity.LivingEntity le ? le : null
+        );
         bomb.setExplosionPower(ModConfig.HEAVY_BOMB_BAY_EXPLOSION_POWER.get());
         bomb.setDestroyBlocks(ModConfig.HEAVY_BOMB_BAY_DESTROY_BLOCKS.get());
         bomb.setPos(position.x(), position.y(), position.z());
