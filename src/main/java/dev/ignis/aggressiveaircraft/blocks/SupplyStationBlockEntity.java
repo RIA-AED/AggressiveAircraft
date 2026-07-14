@@ -14,6 +14,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -57,6 +58,18 @@ public class SupplyStationBlockEntity extends BlockEntity {
 
     public SupplyStationBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlocks.SUPPLY_STATION_BLOCK_ENTITY.get(), pos, state);
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        tag.putLong("LastSupplyTime", lastSupplyTime);
+    }
+
+    @Override
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        lastSupplyTime = tag.getLong("LastSupplyTime");
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, SupplyStationBlockEntity be) {

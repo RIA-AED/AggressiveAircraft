@@ -80,6 +80,14 @@ public class SupplyStationBlock extends BaseEntityBlock {
     }
 
     @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        if (!state.is(newState.getBlock())) {
+            level.removeBlockEntity(pos);
+            // Intentionally skip super.onRemove to prevent item drops
+        }
+    }
+
+    @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (stationType == StationType.REPAIR) return InteractionResult.PASS;
         if (level.isClientSide) return InteractionResult.SUCCESS;
