@@ -1,5 +1,6 @@
 package dev.ignis.aggressiveaircraft.blocks;
 
+import dev.ignis.aggressiveaircraft.AggressiveAircraft;
 import dev.ignis.aggressiveaircraft.ModConfig;
 import dev.ignis.aggressiveaircraft.mixin.BulletWeaponAccessor;
 import immersive_aircraft.entity.InventoryVehicleEntity;
@@ -23,6 +24,9 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3d;
+import org.valkyrienskies.core.api.ships.Ship;
+import org.valkyrienskies.mod.api.ValkyrienSkies;
 
 import java.util.*;
 
@@ -31,6 +35,11 @@ public class SupplyStationBlockEntity extends BlockEntity {
     private long lastSupplyTime = 0;
     private static final int CHECK_INTERVAL = 5;
     private static final int COOLDOWN_TICKS = 1200; // 60 seconds
+
+    // VS ship cache: ship lookups are expensive, cache for a few ticks
+    private Ship cachedShip = null;
+    private int shipCacheTick = 0;
+    private static final int SHIP_CACHE_INTERVAL = 20; // 1 second
 
     private boolean isInCooldown(Level level) {
         return lastSupplyTime > 0 && (level.getGameTime() - lastSupplyTime) < COOLDOWN_TICKS;
@@ -77,7 +86,7 @@ public class SupplyStationBlockEntity extends BlockEntity {
         Direction facing = state.getValue(SupplyStationBlock.FACING);
 
         // Raycast from block front face to find aircraft within 5m
-        List<VehicleEntity> aircraft = raycastAircraft(level, pos, facing);
+        List<VehicleEntity> aircraft = be.raycastAircraft(level, pos, facing);
 
         for (VehicleEntity vehicle : aircraft) {
             BlockPos belowPos = pos.below();
@@ -102,8 +111,12 @@ public class SupplyStationBlockEntity extends BlockEntity {
      * Cast a ray from the block's front face 5m forward.
      * Uses the minimal AABB formed by the ray segment for entity lookup,
      * then precise AABB.clip() intersection test against each candidate.
+     * <p>
+     * When the block is on a Valkyrien Skies ship, the ray coordinates are
+     * in ship-local space. We transform them to world space so that
+     * {@code level.getEntitiesOfClass} (which searches world space) works correctly.
      */
-    private static List<VehicleEntity> raycastAircraft(Level level, BlockPos pos, Direction facing) {
+    private List<VehicleEntity> raycastAircraft(Level level, BlockPos pos, Direction facing) {
         Vec3 start = new Vec3(
                 pos.getX() + 0.5 + facing.getStepX() * 0.5,
                 pos.getY() + 0.5,
@@ -115,6 +128,19 @@ public class SupplyStationBlockEntity extends BlockEntity {
                 facing.getStepZ() * DETECT_RANGE
         );
 
+        // VS ship: transform ray from ship-local to world space
+        if (AggressiveAircraft.VALKYRIENSKIES_LOADED) {
+            Ship ship = getShipManagingPos(level, pos);
+            if (ship != null) {
+                Vector3d worldStart = new Vector3d();
+                Vector3d worldEnd = new Vector3d();
+                ship.getShipToWorld().transformPosition(start.x, start.y, start.z, worldStart);
+                ship.getShipToWorld().transformPosition(end.x, end.y, end.z, worldEnd);
+                start = new Vec3(worldStart.x, worldStart.y, worldStart.z);
+                end = new Vec3(worldEnd.x, worldEnd.y, worldEnd.z);
+            }
+        }
+
         // The ray itself forms the search box — minimal, no inflate
         AABB searchBox = new AABB(start, end);
 
@@ -125,6 +151,19 @@ public class SupplyStationBlockEntity extends BlockEntity {
             }
         }
         return result;
+    }
+
+    /**
+     * Get the VS ship managing this block position, with caching.
+     * Returns null if VS is not loaded or no ship manages this block.
+     */
+    private Ship getShipManagingPos(Level level, BlockPos pos) {
+        int currentTick = (int) level.getGameTime();
+        if (currentTick - shipCacheTick >= SHIP_CACHE_INTERVAL) {
+            shipCacheTick = currentTick;
+            cachedShip = ValkyrienSkies.getShipManagingBlock(level, pos);
+        }
+        return cachedShip;
     }
 
     /**
