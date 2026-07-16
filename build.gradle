@@ -99,9 +99,13 @@ minecraft {
             property 'forge.enabledGameTestNamespaces', mod_id
         }
 
+        client2 {
+            parent runs.client
+            args '--username', 'Dev2'
+        }
+
         server {
             property 'forge.enabledGameTestNamespaces', mod_id
-            args '--nogui'
         }
 
         // This run config launches GameTestServer and runs all registered gametests, then exits.
@@ -139,6 +143,10 @@ repositories {
     flatDir {
         dir 'libs'
     }
+    maven {
+        name = 'KotlinForForge'
+        url = 'https://thedarkcolour.github.io/KotlinForForge/'
+    }
 }
 
 dependencies {
@@ -160,10 +168,9 @@ dependencies {
     // The group id is ignored when searching -- in this case, it is "blank"
     // implementation fg.deobf("blank:coolmod-${mc_version}:${coolmod_version}")
     implementation fg.deobf("blank:immersive_aircraft-1.4.0+1.20.1-forge:1.0.0")
-    compileOnly fg.deobf(files("libs/valkyrienskies-120-2.4.10.jar"))
-    compileOnly fg.deobf(files("libs/api-1.1.0+1d4a7373e9.jar"))
-    compileOnly(fg.deobf(files("libs/immersive_aircraft-1.4.0+1.20.1-forge.jar")))
-    compileOnly 'org.jetbrains.kotlin:kotlin-stdlib:1.9.10'
+    implementation fg.deobf("blank:valkyrienskies-120:2.4.10")
+    compileOnly fg.deobf("blank:api:1.1.0+1d4a7373e9")
+    runtimeOnly fg.deobf('thedarkcolour:kotlinforforge:4.11.0')
     compileOnly 'org.joml:joml-primitives:1.10.0'
 
     // For more info:

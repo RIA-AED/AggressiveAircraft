@@ -12,7 +12,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(VehicleScreenHandler.class)
 public class VehicleScreenHandlerMixin {
 
-    @Inject(method = "m_6875_(Lnet/minecraft/world/entity/player/Player;)Z", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(
+            method = {
+                    "stillValid(Lnet/minecraft/world/entity/player/Player;)Z",
+                    "m_6875_(Lnet/minecraft/world/entity/player/Player;)Z"
+            },
+            at = @At("HEAD"),
+            cancellable = true,
+            remap = false
+    )
     private void closeInventoryWhenFlying(Player player, CallbackInfoReturnable<Boolean> cir) {
         // 创造模式玩家始终允许保持物品栏打开
         if (player.isCreative()) {
