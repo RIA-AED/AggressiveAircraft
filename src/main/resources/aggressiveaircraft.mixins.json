@@ -5,7 +5,7 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "aggressiveaircraft.refmap.json",
   "mixins": [
-    "AircraftEntityGroundPitchMixin",
+    "AircraftEntityVsGroundPitchMixin",
     "BambooHopperEntityMixin",
     "BulletWeaponAccessor",
     "EngineVehicleAccessor",
@@ -14,11 +14,12 @@
     "SlotMixin",
     "SparseSimpleInventoryMixin",
     "VehicleEntityMixin",
+    "VehicleEntityShipYawMixin",
     "VehicleScreenHandlerMixin"
   ],
   "client": [
     "client.LocalPlayerMixin",
-    "client.VehicleEntityClientMixin"
+    "client.VsGamePacketsPitchMixin"
   ],
   "injectors": {
     "defaultRequire": 1
