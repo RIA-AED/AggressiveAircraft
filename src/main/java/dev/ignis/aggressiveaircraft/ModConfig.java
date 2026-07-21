@@ -75,6 +75,10 @@ public class ModConfig {
     // Inventory Control Config
     public static final ForgeConfigSpec.DoubleValue INVENTORY_HEIGHT_THRESHOLD;
 
+    // Supply Station Config
+    public static final ForgeConfigSpec.IntValue SUPPLY_STATION_RF_PER_STACK;
+    public static final ForgeConfigSpec.IntValue SUPPLY_STATION_MAX_RECEIVE;
+
     static {
         BUILDER.push("machine_gun");
         MACHINE_GUN_AMMO = BUILDER
@@ -240,6 +244,15 @@ public class ModConfig {
         INVENTORY_HEIGHT_THRESHOLD = BUILDER
                 .comment("Height threshold below which inventory can be opened (blocks). Set to 0 to disable.")
                 .defineInRange("height_threshold", 320.0, 0.0, 10000.0);
+        BUILDER.pop();
+
+        BUILDER.push("supply_station");
+        SUPPLY_STATION_RF_PER_STACK = BUILDER
+                .comment("RF consumed per stack (64 items) of ammo loaded by the ammo supply station. 0 = free.")
+                .defineInRange("rf_per_stack", 1000, 0, 1_000_000);
+        SUPPLY_STATION_MAX_RECEIVE = BUILDER
+                .comment("Max RF the ammo supply station can receive per tick")
+                .defineInRange("max_receive", 1000, 1, 100_000);
         BUILDER.pop();
 
         SPEC = BUILDER.build();
