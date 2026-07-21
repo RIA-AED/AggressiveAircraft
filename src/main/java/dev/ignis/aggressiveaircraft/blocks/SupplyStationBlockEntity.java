@@ -168,7 +168,7 @@ public class SupplyStationBlockEntity extends BlockEntity {
             IItemHandler container = getContainerBelow(level, belowPos);
 
             boolean supplied = switch (stationType) {
-                case AMMO -> handleAmmoReplenish(vehicle, container);
+                case AMMO -> handleAmmoReplenish(vehicle, container, be.getOrCreateEnergy());
                 case FUEL -> handleFuelReplenish(vehicle, container);
                 case REPAIR -> handleRepair(vehicle);
             };
@@ -261,9 +261,12 @@ public class SupplyStationBlockEntity extends BlockEntity {
      * always picks the ammo type with the fewest occupied slots to supply next.
      * If an ammo type runs out in the container, it is skipped and others continue.
      */
-    private static boolean handleAmmoReplenish(VehicleEntity vehicle, @Nullable IItemHandler container) {
+    private static boolean handleAmmoReplenish(VehicleEntity vehicle, @Nullable IItemHandler container, @Nullable SupplyStationEnergyStorage energy) {
         if (!(vehicle instanceof InventoryVehicleEntity inventoryVehicle)) return false;
         if (container == null) return false;
+
+        int rfPerStack = ModConfig.SUPPLY_STATION_RF_PER_STACK.get();
+        int perItemCost = rfPerStack > 0 ? (rfPerStack + 63) / 64 : 0;
 
         Map<Integer, List<Weapon>> allWeapons = inventoryVehicle.getWeapons();
         if (allWeapons.isEmpty()) return false;
@@ -294,6 +297,10 @@ public class SupplyStationBlockEntity extends BlockEntity {
         int maxIterations = 256;
 
         for (int iter = 0; iter < maxIterations; iter++) {
+            if (energy != null && perItemCost > 0 && energy.getEnergyStored() < perItemCost) {
+                break;
+            }
+
             // Count how many cargo slots each ammoId occupies right now
             Map<String, Integer> slotCounts = countCargoSlotsPerAmmo(inventoryVehicle, allAmmoIds);
 
@@ -333,6 +340,9 @@ public class SupplyStationBlockEntity extends BlockEntity {
                             }
                             if (leastWeapon != null) {
                                 ((BulletWeaponAccessor) leastWeapon.weapon).setAmmo(leastAmmo + 1);
+                            }
+                            if (energy != null && perItemCost > 0) {
+                                energy.consumeEnergy(perItemCost);
                             }
                             replenished = true;
                             anyReplenished = true;
