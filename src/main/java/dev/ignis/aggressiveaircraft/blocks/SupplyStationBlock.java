@@ -94,9 +94,20 @@ public class SupplyStationBlock extends BaseEntityBlock {
 
         BlockEntity be = level.getBlockEntity(pos);
         if (be instanceof SupplyStationBlockEntity station) {
+            StringBuilder msg = new StringBuilder();
             int seconds = station.getCooldownSecondsRemaining(level);
             if (seconds > 0) {
-                player.displayClientMessage(Component.literal("§c冷却中：剩余 " + seconds + " 秒"), true);
+                msg.append("§c冷却中：剩余 ").append(seconds).append(" 秒");
+            }
+            if (stationType == StationType.AMMO) {
+                String energyStatus = station.getEnergyStatus();
+                if (!energyStatus.isEmpty()) {
+                    if (msg.length() > 0) msg.append("  ");
+                    msg.append(energyStatus);
+                }
+            }
+            if (msg.length() > 0) {
+                player.displayClientMessage(Component.literal(msg.toString()), true);
             }
         }
         return InteractionResult.SUCCESS;
