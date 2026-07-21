@@ -85,11 +85,10 @@ public class SupplyStationBlockEntity extends BlockEntity {
     }
 
     public String getEnergyStatus() {
-        if (energyStorage != null) {
-            return "§b能量: " + energyStorage.getEnergyStored()
-                    + "/" + energyStorage.getMaxEnergyStored() + " RF";
-        }
-        return "";
+        if (!isAmmoStation()) return "";
+        SupplyStationEnergyStorage storage = getOrCreateEnergy();
+        return "§b能量: " + storage.getEnergyStored()
+                + "/" + storage.getMaxEnergyStored() + " RF";
     }
 
     @Override
