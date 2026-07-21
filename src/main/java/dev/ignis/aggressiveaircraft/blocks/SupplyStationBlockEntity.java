@@ -24,6 +24,9 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import org.valkyrienskies.core.api.ships.Ship;
@@ -56,20 +59,79 @@ public class SupplyStationBlockEntity extends BlockEntity {
     // Raycast detection: 5m forward
     private static final double DETECT_RANGE = 5.0;
 
+    private SupplyStationEnergyStorage energyStorage;
+    private LazyOptional<IEnergyStorage> energyLazyOptional;
+
     public SupplyStationBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlocks.SUPPLY_STATION_BLOCK_ENTITY.get(), pos, state);
+    }
+
+    private boolean isAmmoStation() {
+        BlockState state = getBlockState();
+        return state.getBlock() instanceof SupplyStationBlock block
+                && block.getStationType() == SupplyStationBlock.StationType.AMMO;
+    }
+
+    private SupplyStationEnergyStorage getOrCreateEnergy() {
+        if (energyStorage == null) {
+            int rfPerStack = ModConfig.SUPPLY_STATION_RF_PER_STACK.get();
+            int capacity = Math.max(1, rfPerStack * 10);
+            int maxReceive = ModConfig.SUPPLY_STATION_MAX_RECEIVE.get();
+            energyStorage = new SupplyStationEnergyStorage(capacity, maxReceive, 0, 0);
+            energyStorage.setOnChanged(this::setChanged);
+            energyLazyOptional = LazyOptional.of(() -> energyStorage);
+        }
+        return energyStorage;
+    }
+
+    public String getEnergyStatus() {
+        if (energyStorage != null) {
+            return "§b能量: " + energyStorage.getEnergyStored()
+                    + "/" + energyStorage.getMaxEnergyStored() + " RF";
+        }
+        return "";
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
         tag.putLong("LastSupplyTime", lastSupplyTime);
+        if (energyStorage != null) {
+            tag.putInt("Energy", energyStorage.getEnergyStored());
+        }
     }
 
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
         lastSupplyTime = tag.getLong("LastSupplyTime");
+        if (tag.contains("Energy")) {
+            getOrCreateEnergy().setEnergy(tag.getInt("Energy"));
+        }
+    }
+
+    @Override
+    public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
+        if (cap == ForgeCapabilities.ENERGY && isAmmoStation()
+                && (side == null || side.getAxis() != Direction.Axis.Y)) {
+            getOrCreateEnergy();
+            return energyLazyOptional.cast();
+        }
+        return super.getCapability(cap, side);
+    }
+
+    @Override
+    public void invalidateCaps() {
+        super.invalidateCaps();
+        if (energyLazyOptional != null) energyLazyOptional.invalidate();
+    }
+
+    @Override
+    public void reviveCaps() {
+        super.reviveCaps();
+        if (energyStorage != null) {
+            energyLazyOptional = LazyOptional.of(() -> energyStorage);
+        }
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, SupplyStationBlockEntity be) {
