@@ -75,7 +75,7 @@ public class SupplyStationBlockEntity extends BlockEntity {
     private SupplyStationEnergyStorage getOrCreateEnergy() {
         if (energyStorage == null) {
             int rfPerStack = ModConfig.SUPPLY_STATION_RF_PER_STACK.get();
-            int capacity = Math.max(1, rfPerStack * 10);
+            int capacity = Math.max(1, rfPerStack * 50);
             int maxReceive = ModConfig.SUPPLY_STATION_MAX_RECEIVE.get();
             energyStorage = new SupplyStationEnergyStorage(capacity, maxReceive, 0, 0);
             energyStorage.setOnChanged(this::setChanged);
