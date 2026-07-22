@@ -265,7 +265,6 @@ public class SupplyStationBlockEntity extends BlockEntity {
         if (container == null) return false;
 
         int rfPerStack = ModConfig.SUPPLY_STATION_RF_PER_STACK.get();
-        int perItemCost = rfPerStack > 0 ? (rfPerStack + 63) / 64 : 0;
 
         Map<Integer, List<Weapon>> allWeapons = inventoryVehicle.getWeapons();
         if (allWeapons.isEmpty()) return false;
@@ -296,10 +295,6 @@ public class SupplyStationBlockEntity extends BlockEntity {
         int maxIterations = 256;
 
         for (int iter = 0; iter < maxIterations; iter++) {
-            if (energy != null && perItemCost > 0 && energy.getEnergyStored() < perItemCost) {
-                break;
-            }
-
             // Count how many cargo slots each ammoId occupies right now
             Map<String, Integer> slotCounts = countCargoSlotsPerAmmo(inventoryVehicle, allAmmoIds);
 
@@ -324,6 +319,11 @@ public class SupplyStationBlockEntity extends BlockEntity {
                 if (stack.isEmpty()) continue;
                 String stackId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
                 if (stackId.equals(target)) {
+                    int maxStack = stack.getMaxStackSize();
+                    int perItemCost = rfPerStack > 0 ? (rfPerStack + maxStack - 1) / maxStack : 0;
+                    if (energy != null && perItemCost > 0 && energy.getEnergyStored() < perItemCost) {
+                        return anyReplenished;
+                    }
                     ItemStack extracted = container.extractItem(slot, 1, false);
                     if (!extracted.isEmpty()) {
                         if (addToVehicleInventory(inventoryVehicle, extracted)) {
