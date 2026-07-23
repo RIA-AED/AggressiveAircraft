@@ -21,7 +21,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
+
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.common.capabilities.Capability;
@@ -56,8 +56,6 @@ public class SupplyStationBlockEntity extends BlockEntity {
         return remaining > 0 ? (int) ((remaining + 19) / 20) : 0; // ceil division
     }
 
-    // Raycast detection: 5m forward
-    private static final double DETECT_RANGE = 5.0;
 
     private SupplyStationEnergyStorage energyStorage;
     private LazyOptional<IEnergyStorage> energyLazyOptional;
@@ -157,10 +155,8 @@ public class SupplyStationBlockEntity extends BlockEntity {
             return;
         }
 
-        Direction facing = state.getValue(SupplyStationBlock.FACING);
-
-        // Raycast from block front face to find aircraft within 5m
-        List<VehicleEntity> aircraft = be.raycastAircraft(level, pos, facing);
+        // Detect aircraft whose AABB overlaps with this block's 1x1x1 volume
+        List<VehicleEntity> aircraft = be.detectAircraft(level, pos);
 
         for (VehicleEntity vehicle : aircraft) {
             BlockPos belowPos = pos.below();
@@ -182,49 +178,38 @@ public class SupplyStationBlockEntity extends BlockEntity {
     }
 
     /**
-     * Cast a ray from the block's front face 5m forward.
-     * Uses the minimal AABB formed by the ray segment for entity lookup,
-     * then precise AABB.clip() intersection test against each candidate.
+     * Detect aircraft whose collision box (AABB) overlaps with this block's 1x1x1 volume.
      * <p>
-     * When the block is on a Valkyrien Skies ship, the ray coordinates are
+     * When the block is on a Valkyrien Skies ship, the block coordinates are
      * in ship-local space. We transform them to world space so that
      * {@code level.getEntitiesOfClass} (which searches world space) works correctly.
      */
-    private List<VehicleEntity> raycastAircraft(Level level, BlockPos pos, Direction facing) {
-        Vec3 start = new Vec3(
-                pos.getX() + 0.5 + facing.getStepX() * 0.5,
-                pos.getY() + 0.5,
-                pos.getZ() + 0.5 + facing.getStepZ() * 0.5
-        );
-        Vec3 end = start.add(
-                facing.getStepX() * DETECT_RANGE,
-                0,
-                facing.getStepZ() * DETECT_RANGE
-        );
+    private List<VehicleEntity> detectAircraft(Level level, BlockPos pos) {
+        double minX = pos.getX();
+        double minY = pos.getY();
+        double minZ = pos.getZ();
+        double maxX = pos.getX() + 1;
+        double maxY = pos.getY() + 1;
+        double maxZ = pos.getZ() + 1;
 
-        // VS ship: transform ray from ship-local to world space
+        AABB detectionBox = new AABB(minX, minY, minZ, maxX, maxY, maxZ);
+
+        // VS ship: transform block corners from ship-local to world space
         if (AggressiveAircraft.VALKYRIENSKIES_LOADED) {
             Ship ship = getShipManagingPos(level, pos);
             if (ship != null) {
-                Vector3d worldStart = new Vector3d();
-                Vector3d worldEnd = new Vector3d();
-                ship.getShipToWorld().transformPosition(start.x, start.y, start.z, worldStart);
-                ship.getShipToWorld().transformPosition(end.x, end.y, end.z, worldEnd);
-                start = new Vec3(worldStart.x, worldStart.y, worldStart.z);
-                end = new Vec3(worldEnd.x, worldEnd.y, worldEnd.z);
+                Vector3d wMin = new Vector3d();
+                Vector3d wMax = new Vector3d();
+                ship.getShipToWorld().transformPosition(minX, minY, minZ, wMin);
+                ship.getShipToWorld().transformPosition(maxX, maxY, maxZ, wMax);
+                detectionBox = new AABB(
+                        Math.min(wMin.x, wMax.x), Math.min(wMin.y, wMax.y), Math.min(wMin.z, wMax.z),
+                        Math.max(wMin.x, wMax.x), Math.max(wMin.y, wMax.y), Math.max(wMin.z, wMax.z)
+                );
             }
         }
 
-        // The ray itself forms the search box — minimal, no inflate
-        AABB searchBox = new AABB(start, end);
-
-        List<VehicleEntity> result = new ArrayList<>();
-        for (VehicleEntity vehicle : level.getEntitiesOfClass(VehicleEntity.class, searchBox, e -> e.isAlive())) {
-            if (vehicle.getBoundingBox().clip(start, end).isPresent()) {
-                result.add(vehicle);
-            }
-        }
-        return result;
+        return new ArrayList<>(level.getEntitiesOfClass(VehicleEntity.class, detectionBox, e -> e.isAlive()));
     }
 
     /**
