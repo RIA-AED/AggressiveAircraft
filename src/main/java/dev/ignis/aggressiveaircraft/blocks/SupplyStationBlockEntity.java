@@ -12,6 +12,8 @@ import immersive_aircraft.entity.weapon.Weapon;
 import immersive_aircraft.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -21,7 +23,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.BlockHitResult;
+
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.common.capabilities.Capability;
@@ -29,6 +32,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
+import org.joml.Vector3f;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.api.ValkyrienSkies;
 
@@ -56,8 +60,6 @@ public class SupplyStationBlockEntity extends BlockEntity {
         return remaining > 0 ? (int) ((remaining + 19) / 20) : 0; // ceil division
     }
 
-    // Raycast detection: 5m forward
-    private static final double DETECT_RANGE = 5.0;
 
     private SupplyStationEnergyStorage energyStorage;
     private LazyOptional<IEnergyStorage> energyLazyOptional;
@@ -134,11 +136,14 @@ public class SupplyStationBlockEntity extends BlockEntity {
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, SupplyStationBlockEntity be) {
-        if (level.isClientSide) return;
-
-        // Initialize tick offset randomly (0-4) on first tick
+        // Initialize tick offset randomly (0-4) on first tick (both sides)
         if (be.tickOffset < 0) {
             be.tickOffset = level.random.nextInt(CHECK_INTERVAL);
+        }
+
+        if (level.isClientSide) {
+            clientTick(level, pos, state, be);
+            return;
         }
 
         SupplyStationBlock block = (SupplyStationBlock) state.getBlock();
@@ -157,10 +162,8 @@ public class SupplyStationBlockEntity extends BlockEntity {
             return;
         }
 
-        Direction facing = state.getValue(SupplyStationBlock.FACING);
-
-        // Raycast from block front face to find aircraft within 5m
-        List<VehicleEntity> aircraft = be.raycastAircraft(level, pos, facing);
+        // Detect aircraft whose AABB overlaps with this block's 1x1x1 volume
+        List<VehicleEntity> aircraft = be.detectAircraft(level, pos);
 
         for (VehicleEntity vehicle : aircraft) {
             BlockPos belowPos = pos.below();
@@ -181,50 +184,88 @@ public class SupplyStationBlockEntity extends BlockEntity {
         }
     }
 
+    private static final int CLIENT_PARTICLE_INTERVAL = 4; // spawn particles every 4 ticks
+
     /**
-     * Cast a ray from the block's front face 5m forward.
-     * Uses the minimal AABB formed by the ray segment for entity lookup,
-     * then precise AABB.clip() intersection test against each candidate.
+     * Client-side tick: spawn range indicator particles when a player looks at this block.
+     */
+    private static void clientTick(Level level, BlockPos pos, BlockState state, SupplyStationBlockEntity be) {
+        // Rate-limit particle spawning using tick offset
+        if ((level.getGameTime() + be.tickOffset) % CLIENT_PARTICLE_INTERVAL != 0) return;
+        spawnRangeIndicatorParticles(level, pos, state);
+    }
+
+    /**
+     * Spawn redstone dust particles along a beam extending forward from the block
+     * in its facing direction, but only when the local player is looking at this block.
+     */
+    private static void spawnRangeIndicatorParticles(Level level, BlockPos pos, BlockState state) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.player == null || minecraft.hitResult == null) return;
+        if (!(minecraft.hitResult instanceof BlockHitResult blockHit)) return;
+        if (!blockHit.getBlockPos().equals(pos)) return;
+
+        Direction facing = state.getValue(SupplyStationBlock.FACING);
+
+        // Beam origin: center of the block's front face
+        double originX = pos.getX() + 0.5 + facing.getStepX() * 0.55;
+        double originY = pos.getY() + 0.15; // slightly above the slab surface
+        double originZ = pos.getZ() + 0.5 + facing.getStepZ() * 0.55;
+
+        // Beam extends 1.0 blocks forward (matching the detection AABB extent)
+        double beamLength = 1.0;
+
+        // Redstone dust color: bright red
+        Vector3f redColor = new Vector3f(1.0f, 0.15f, 0.0f);
+
+        for (int i = 0; i < 5; i++) {
+            double t = i / 4.0; // 0.0 to 1.0 along the beam
+            double x = originX + facing.getStepX() * t * beamLength;
+            double y = originY + level.random.nextDouble() * 0.08;
+            double z = originZ + facing.getStepZ() * t * beamLength;
+
+            // Minimal perpendicular spread for a thinner beam
+            x += (level.random.nextDouble() - 0.5) * 0.03;
+            z += (level.random.nextDouble() - 0.5) * 0.03;
+
+            level.addParticle(new DustParticleOptions(redColor, 0.8f),
+                    x, y, z, 0.0, 0.0, 0.0);
+        }
+    }
+
+    /**
+     * Detect aircraft whose collision box (AABB) overlaps with this block's 1x1x1 volume.
      * <p>
-     * When the block is on a Valkyrien Skies ship, the ray coordinates are
+     * When the block is on a Valkyrien Skies ship, the block coordinates are
      * in ship-local space. We transform them to world space so that
      * {@code level.getEntitiesOfClass} (which searches world space) works correctly.
      */
-    private List<VehicleEntity> raycastAircraft(Level level, BlockPos pos, Direction facing) {
-        Vec3 start = new Vec3(
-                pos.getX() + 0.5 + facing.getStepX() * 0.5,
-                pos.getY() + 0.5,
-                pos.getZ() + 0.5 + facing.getStepZ() * 0.5
-        );
-        Vec3 end = start.add(
-                facing.getStepX() * DETECT_RANGE,
-                0,
-                facing.getStepZ() * DETECT_RANGE
-        );
+    private List<VehicleEntity> detectAircraft(Level level, BlockPos pos) {
+        double minX = pos.getX();
+        double minY = pos.getY();
+        double minZ = pos.getZ();
+        double maxX = pos.getX() + 1;
+        double maxY = pos.getY() + 1;
+        double maxZ = pos.getZ() + 1;
 
-        // VS ship: transform ray from ship-local to world space
+        AABB detectionBox = new AABB(minX, minY, minZ, maxX, maxY, maxZ);
+
+        // VS ship: transform block corners from ship-local to world space
         if (AggressiveAircraft.VALKYRIENSKIES_LOADED) {
             Ship ship = getShipManagingPos(level, pos);
             if (ship != null) {
-                Vector3d worldStart = new Vector3d();
-                Vector3d worldEnd = new Vector3d();
-                ship.getShipToWorld().transformPosition(start.x, start.y, start.z, worldStart);
-                ship.getShipToWorld().transformPosition(end.x, end.y, end.z, worldEnd);
-                start = new Vec3(worldStart.x, worldStart.y, worldStart.z);
-                end = new Vec3(worldEnd.x, worldEnd.y, worldEnd.z);
+                Vector3d wMin = new Vector3d();
+                Vector3d wMax = new Vector3d();
+                ship.getShipToWorld().transformPosition(minX, minY, minZ, wMin);
+                ship.getShipToWorld().transformPosition(maxX, maxY, maxZ, wMax);
+                detectionBox = new AABB(
+                        Math.min(wMin.x, wMax.x), Math.min(wMin.y, wMax.y), Math.min(wMin.z, wMax.z),
+                        Math.max(wMin.x, wMax.x), Math.max(wMin.y, wMax.y), Math.max(wMin.z, wMax.z)
+                );
             }
         }
 
-        // The ray itself forms the search box — minimal, no inflate
-        AABB searchBox = new AABB(start, end);
-
-        List<VehicleEntity> result = new ArrayList<>();
-        for (VehicleEntity vehicle : level.getEntitiesOfClass(VehicleEntity.class, searchBox, e -> e.isAlive())) {
-            if (vehicle.getBoundingBox().clip(start, end).isPresent()) {
-                result.add(vehicle);
-            }
-        }
-        return result;
+        return new ArrayList<>(level.getEntitiesOfClass(VehicleEntity.class, detectionBox, e -> e.isAlive()));
     }
 
     /**
