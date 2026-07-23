@@ -122,7 +122,6 @@ public class SupplyStationBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide) return null;
         return createTickerHelper(type, ModBlocks.SUPPLY_STATION_BLOCK_ENTITY.get(),
                 SupplyStationBlockEntity::tick);
     }
