@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(value = VehicleEntity.class, remap = false)
 public abstract class VehicleEntityShipDamageMixin {
 
-    @Inject(method = "hurt", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "hurt", at = @At("HEAD"), cancellable = true, remap = true)
     private void aggressiveAircraft$preventDamageOnShip(
             DamageSource source,
             float amount,

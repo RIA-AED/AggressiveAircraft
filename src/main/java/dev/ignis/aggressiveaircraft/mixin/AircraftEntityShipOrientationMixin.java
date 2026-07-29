@@ -18,9 +18,11 @@ public abstract class AircraftEntityShipOrientationMixin {
             method = "tick",
             at = @At(
                     value = "INVOKE",
-                    target = "Limmersive_aircraft/entity/AircraftEntity;setZRot(F)V"
+                    target = "Limmersive_aircraft/entity/AircraftEntity;setZRot(F)V",
+                    remap = false
             ),
-            require = 2
+            require = 2,
+            remap = true
     )
     private void aggressiveAircraft$preserveShipRelativeRoll(
             AircraftEntity aircraft,
@@ -41,7 +43,8 @@ public abstract class AircraftEntityShipOrientationMixin {
                     target = "Limmersive_aircraft/entity/AircraftEntity;setXRot(F)V",
                     ordinal = 1
             ),
-            require = 1
+            require = 1,
+            remap = true
     )
     private void aggressiveAircraft$preserveShipRelativePitch(
             AircraftEntity aircraft,
