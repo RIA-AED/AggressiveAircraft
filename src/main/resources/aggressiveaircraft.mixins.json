@@ -17,6 +17,7 @@
     "SparseSimpleInventoryMixin",
     "VehicleEntityMixin",
     "VehicleEntityShipContextMixin",
+    "VehicleEntityShipDamageMixin",
     "VehicleScreenHandlerMixin",
     "VsEntityDraggerAircraftMixin"
   ],
