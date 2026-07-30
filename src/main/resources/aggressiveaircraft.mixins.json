@@ -6,7 +6,6 @@
   "refmap": "aggressiveaircraft.refmap.json",
   "mixins": [
     "AircraftEntityLastYAccessor",
-    "AircraftEntityShipOrientationMixin",
     "AircraftEntityVsGroundPitchMixin",
     "BambooHopperEntityMixin",
     "BulletWeaponAccessor",
