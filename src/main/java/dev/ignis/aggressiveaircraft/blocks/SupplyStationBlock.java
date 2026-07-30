@@ -25,6 +25,24 @@ import org.jetbrains.annotations.Nullable;
 public class SupplyStationBlock extends BaseEntityBlock {
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
 
+    // Base plate: full block width/depth, 2px tall (model element [0,0,0]-[16,2,16])
+    private static final VoxelShape SHAPE_BASE = Shapes.box(0, 0, 0, 1, 2.0 / 16.0, 1);
+
+    // 受电口背板 (model elements [4,2,13]-[12,11,15] + [7,7,15]-[9,9,16])
+    // Combined bounding: x=4-12, y=2-11, z=13-16
+    private static final VoxelShape SHAPE_BACK_NORTH = Shapes.box(
+            4.0 / 16.0, 2.0 / 16.0, 13.0 / 16.0,
+            12.0 / 16.0, 11.0 / 16.0, 1.0);
+    private static final VoxelShape SHAPE_BACK_SOUTH = Shapes.box(
+            4.0 / 16.0, 2.0 / 16.0, 0.0,
+            12.0 / 16.0, 11.0 / 16.0, 3.0 / 16.0);
+    private static final VoxelShape SHAPE_BACK_WEST = Shapes.box(
+            13.0 / 16.0, 2.0 / 16.0, 4.0 / 16.0,
+            1.0, 11.0 / 16.0, 12.0 / 16.0);
+    private static final VoxelShape SHAPE_BACK_EAST = Shapes.box(
+            0.0, 2.0 / 16.0, 4.0 / 16.0,
+            3.0 / 16.0, 11.0 / 16.0, 12.0 / 16.0);
+
     public enum StationType {
         AMMO,
         FUEL,
@@ -71,12 +89,22 @@ public class SupplyStationBlock extends BaseEntityBlock {
 
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return Shapes.box(0, 0, 0, 1, 2.0 / 16.0, 1);
+        return Shapes.or(SHAPE_BASE, getBackPanelShape(state.getValue(FACING)));
     }
 
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return Shapes.empty();
+        return getBackPanelShape(state.getValue(FACING));
+    }
+
+    private static VoxelShape getBackPanelShape(Direction facing) {
+        return switch (facing) {
+            case NORTH -> SHAPE_BACK_NORTH;
+            case SOUTH -> SHAPE_BACK_SOUTH;
+            case WEST -> SHAPE_BACK_WEST;
+            case EAST -> SHAPE_BACK_EAST;
+            default -> SHAPE_BACK_NORTH;
+        };
     }
 
     @Override
