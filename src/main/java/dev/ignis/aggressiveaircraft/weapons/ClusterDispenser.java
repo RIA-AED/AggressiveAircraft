@@ -1,6 +1,7 @@
 package dev.ignis.aggressiveaircraft.weapons;
 
 import dev.ignis.aggressiveaircraft.ModConfig;
+import dev.ignis.aggressiveaircraft.entities.ClusterDispenserEntity;
 import dev.ignis.aggressiveaircraft.entities.ModEntities;
 import immersive_aircraft.entity.VehicleEntity;
 import immersive_aircraft.entity.misc.WeaponMount;
@@ -10,12 +11,16 @@ import immersive_aircraft.network.c2s.FireMessage;
 import immersive_aircraft.resources.bbmodel.BBAnimationVariables;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class ClusterDispenser extends BulletWeapon {
     private float cooldown = 0.0f;
@@ -77,6 +82,24 @@ public class ClusterDispenser extends BulletWeapon {
         Entity bullet = getBullet(entity, position, direction);
         // 设置速度为飞机速度（不叠加）
         bullet.setDeltaMovement(speed);
+
+        // 发射时：沿预测飞行路径对底下的地面用多个AABB扫描，选择攻击目标并按血量计算份额
+        if (bullet instanceof ClusterDispenserEntity dispenser) {
+            List<LivingEntity> targets = ClusterDispenserEntity.selectTargets(
+                    entity.level(), bullet.position(), speed);
+            double totalHp = 0.0;
+            for (LivingEntity target : targets) {
+                totalHp += target.getHealth();
+            }
+            if (totalHp > 0.0) {
+                Map<UUID, Float> shares = new HashMap<>();
+                for (LivingEntity target : targets) {
+                    shares.put(target.getUUID(), (float) (target.getHealth() / totalHp));
+                }
+                dispenser.setTargetShares(shares);
+            }
+        }
+
         entity.level().addFreshEntity(bullet);
 
         // 播放声音

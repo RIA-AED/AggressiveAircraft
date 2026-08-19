@@ -5,6 +5,8 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 
+import java.util.List;
+
 @Mod.EventBusSubscriber(modid = dev.ignis.aggressiveaircraft.AggressiveAircraft.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
@@ -43,9 +45,8 @@ public class ModConfig {
     public static final ForgeConfigSpec.ConfigValue<String> CLUSTER_DISPENSER_AMMO;
     public static final ForgeConfigSpec.IntValue CLUSTER_DISPENSER_AMMO_CONSUMPTION;
     public static final ForgeConfigSpec.DoubleValue CLUSTER_DISPENSER_COOLDOWN;
-    public static final ForgeConfigSpec.IntValue CLUSTER_DISPENSER_BOMBLET_DAMAGE;
-    public static final ForgeConfigSpec.DoubleValue CLUSTER_DISPENSER_BOMBLET_EXPLOSION_POWER;
-    public static final ForgeConfigSpec.BooleanValue CLUSTER_DISPENSER_BOMBLET_DESTROY_BLOCKS;
+    public static final ForgeConfigSpec.IntValue CLUSTER_DISPENSER_BOMBLET_HIT_COUNT;
+    public static final ForgeConfigSpec.IntValue CLUSTER_DISPENSER_BOMBLET_HIT_DAMAGE;
 
     // Rocket Pod Config
     public static final ForgeConfigSpec.ConfigValue<String> ROCKET_POD_AMMO;
@@ -62,6 +63,9 @@ public class ModConfig {
     public static final ForgeConfigSpec.DoubleValue ROTARY_CANNON_FIRE_RATE;
     public static final ForgeConfigSpec.DoubleValue ROTARY_CANNON_EXPLOSION_POWER;
     public static final ForgeConfigSpec.BooleanValue ROTARY_CANNON_DESTROY_BLOCKS;
+
+    // Aircraft Repair Config
+    public static final ForgeConfigSpec.ConfigValue<List<String>> AIRCRAFT_REPAIR_ITEMS;
 
     // Napalm Bomb Config
     public static final ForgeConfigSpec.ConfigValue<String> NAPALM_BOMB_AMMO;
@@ -162,15 +166,12 @@ public class ModConfig {
         CLUSTER_DISPENSER_COOLDOWN = BUILDER
                 .comment("Cooldown time in seconds")
                 .defineInRange("cooldown", 30.0, 0.0, 300.0);
-        CLUSTER_DISPENSER_BOMBLET_DAMAGE = BUILDER
-                .comment("Damage per bomblet hit")
-                .defineInRange("bomblet_damage", 1, 1, 500);
-        CLUSTER_DISPENSER_BOMBLET_EXPLOSION_POWER = BUILDER
-                .comment("Explosion power per bomblet")
-                .defineInRange("bomblet_explosion_power", 4.0, 0.0, 20.0);
-        CLUSTER_DISPENSER_BOMBLET_DESTROY_BLOCKS = BUILDER
-                .comment("Whether bomblet explosions destroy blocks")
-                .define("bomblet_destroy_blocks", false);
+        CLUSTER_DISPENSER_BOMBLET_HIT_COUNT = BUILDER
+                .comment("Hits per bomblet (projectile damage, no explosion)")
+                .defineInRange("bomblet_hit_count", 2, 1, 64);
+        CLUSTER_DISPENSER_BOMBLET_HIT_DAMAGE = BUILDER
+                .comment("Damage per hit")
+                .defineInRange("bomblet_hit_damage", 4, 1, 100);
         BUILDER.pop();
 
         BUILDER.push("rocket_pod");
@@ -238,6 +239,14 @@ public class ModConfig {
                 .comment("Maximum ignite probability at center of fire radius. " +
                         "Decays linearly to 0 at the edge. Higher values = denser fire.")
                 .defineInRange("ignite_chance", 0.9, 0.0, 1.0);
+        BUILDER.pop();
+
+        BUILDER.push("aircraft_repair");
+        AIRCRAFT_REPAIR_ITEMS = BUILDER
+                .comment("机上自动维修：乘客/驾驶员快捷栏内携带这些物品时，每秒自动消耗一个，为飞机恢复对应点数血量。",
+                        "格式：\"物品ID:点数\" 列表，例如 \"minecraft:iron_ingot:1\"。",
+                        "点数与伤害同一量纲：满血飞机 = damagePerHealthPoint 点伤害（默认30）")
+                .define("repair_items", List.of("minecraft:iron_ingot:1"));
         BUILDER.pop();
 
         BUILDER.push("inventory_control");
