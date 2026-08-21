@@ -2,7 +2,6 @@ package dev.ignis.aggressiveaircraft.blocks;
 
 import dev.ignis.aggressiveaircraft.AggressiveAircraft;
 import dev.ignis.aggressiveaircraft.ModConfig;
-import dev.ignis.aggressiveaircraft.mixin.BulletWeaponAccessor;
 import immersive_aircraft.entity.InventoryVehicleEntity;
 import immersive_aircraft.entity.VehicleEntity;
 import immersive_aircraft.entity.inventory.VehicleInventoryDescription;
@@ -310,9 +309,6 @@ public class SupplyStationBlockEntity extends BlockEntity {
         Map<Integer, List<Weapon>> allWeapons = inventoryVehicle.getWeapons();
         if (allWeapons.isEmpty()) return false;
 
-        // Collect weapons grouped by ammoId
-        record WeaponInfo(Weapon weapon, String ammoId) {}
-        Map<String, List<WeaponInfo>> ammoWeapons = new LinkedHashMap<>();
         Set<String> allAmmoIds = new HashSet<>();
 
         for (List<Weapon> weaponList : allWeapons.values()) {
@@ -321,15 +317,13 @@ public class SupplyStationBlockEntity extends BlockEntity {
                     String weaponItemId = BuiltInRegistries.ITEM.getKey(weapon.getStack().getItem()).toString();
                     String ammoId = getAmmoForWeapon(weaponItemId);
                     if (ammoId != null) {
-                        ammoWeapons.computeIfAbsent(ammoId, k -> new ArrayList<>())
-                                .add(new WeaponInfo(weapon, ammoId));
                         allAmmoIds.add(ammoId);
                     }
                 }
             }
         }
 
-        if (ammoWeapons.isEmpty()) return false;
+        if (allAmmoIds.isEmpty()) return false;
 
         Set<String> depleted = new HashSet<>(); // ammoIds no longer available in container
         boolean anyReplenished = false;
@@ -368,19 +362,6 @@ public class SupplyStationBlockEntity extends BlockEntity {
                     ItemStack extracted = container.extractItem(slot, 1, false);
                     if (!extracted.isEmpty()) {
                         if (addToVehicleInventory(inventoryVehicle, extracted)) {
-                            // Increment ammo on the weapon with least ammo for this type
-                            WeaponInfo leastWeapon = null;
-                            int leastAmmo = Integer.MAX_VALUE;
-                            for (WeaponInfo info : ammoWeapons.get(target)) {
-                                int ammo = ((BulletWeaponAccessor) info.weapon).getAmmo();
-                                if (ammo < leastAmmo) {
-                                    leastAmmo = ammo;
-                                    leastWeapon = info;
-                                }
-                            }
-                            if (leastWeapon != null) {
-                                ((BulletWeaponAccessor) leastWeapon.weapon).setAmmo(leastAmmo + 1);
-                            }
                             if (energy != null && perItemCost > 0) {
                                 energy.consumeEnergy(perItemCost);
                             }
