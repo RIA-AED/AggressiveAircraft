@@ -31,7 +31,7 @@ public class HomingRocketLauncher extends BulletWeapon {
     private static final double MAX_RANGE = 128.0;
     private static final double SEARCH_RADIUS = 32.0;
     private static final int LOCK_SCAN_INTERVAL = 5; // 每5tick扫描一次
-    private static final float LOCK_HEALTH_THRESHOLD = 150.0f; // 血量阈值150
+    private static final float LOCK_HEALTH_THRESHOLD = 145.0f; // 血量阈值150
     private static final String TRACKED_TAG = "airstrikepointers:tracked";
     private static final SoundEvent LOCK_SOUND = SoundEvent.createVariableRangeEvent(
             ResourceLocation.tryBuild("minecraft", "block.note_block.xylophone"));
@@ -166,7 +166,7 @@ public class HomingRocketLauncher extends BulletWeapon {
             if (lockScanTimer >= LOCK_SCAN_INTERVAL) {
                 lockScanTimer = 0;
                 LivingEntity target = findTarget(getDirection());
-                clientLockState = target != null && target.getHealth() >= LOCK_HEALTH_THRESHOLD;
+                clientLockState = target != null && target.getMaxHealth() >= LOCK_HEALTH_THRESHOLD;
             }
 
             // 锁定状态下每tick播放音效
