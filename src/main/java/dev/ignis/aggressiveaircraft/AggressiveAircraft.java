@@ -44,7 +44,6 @@ public class AggressiveAircraft {
 
     public static final String MODID = "aggressiveaircraft";
     public static final Logger LOGGER = LogUtils.getLogger();
-    public static final boolean VALKYRIENSKIES_LOADED = true;
 
     @SuppressWarnings("removal")
     public AggressiveAircraft() {

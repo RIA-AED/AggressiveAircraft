@@ -1,6 +1,5 @@
 package dev.ignis.aggressiveaircraft.blocks;
 
-import dev.ignis.aggressiveaircraft.AggressiveAircraft;
 import dev.ignis.aggressiveaircraft.ModConfig;
 import immersive_aircraft.entity.InventoryVehicleEntity;
 import immersive_aircraft.entity.VehicleEntity;
@@ -30,10 +29,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3d;
 import org.joml.Vector3f;
-import org.valkyrienskies.core.api.ships.Ship;
-import org.valkyrienskies.mod.api.ValkyrienSkies;
 
 import java.util.*;
 
@@ -42,11 +38,6 @@ public class SupplyStationBlockEntity extends BlockEntity {
     private long lastSupplyTime = 0;
     private static final int CHECK_INTERVAL = 5;
     private static final int COOLDOWN_TICKS = 1200; // 60 seconds
-
-    // VS ship cache: ship lookups are expensive, cache for a few ticks
-    private Ship cachedShip = null;
-    private int shipCacheTick = 0;
-    private static final int SHIP_CACHE_INTERVAL = 20; // 1 second
 
     private boolean isInCooldown(Level level) {
         return lastSupplyTime > 0 && (level.getGameTime() - lastSupplyTime) < COOLDOWN_TICKS;
@@ -234,50 +225,14 @@ public class SupplyStationBlockEntity extends BlockEntity {
 
     /**
      * Detect aircraft whose collision box (AABB) overlaps with this block's 1x1x1 volume.
-     * <p>
-     * When the block is on a Valkyrien Skies ship, the block coordinates are
-     * in ship-local space. We transform them to world space so that
-     * {@code level.getEntitiesOfClass} (which searches world space) works correctly.
      */
     private List<VehicleEntity> detectAircraft(Level level, BlockPos pos) {
-        double minX = pos.getX();
-        double minY = pos.getY();
-        double minZ = pos.getZ();
-        double maxX = pos.getX() + 1;
-        double maxY = pos.getY() + 1;
-        double maxZ = pos.getZ() + 1;
-
-        AABB detectionBox = new AABB(minX, minY, minZ, maxX, maxY, maxZ);
-
-        // VS ship: transform block corners from ship-local to world space
-        if (AggressiveAircraft.VALKYRIENSKIES_LOADED) {
-            Ship ship = getShipManagingPos(level, pos);
-            if (ship != null) {
-                Vector3d wMin = new Vector3d();
-                Vector3d wMax = new Vector3d();
-                ship.getShipToWorld().transformPosition(minX, minY, minZ, wMin);
-                ship.getShipToWorld().transformPosition(maxX, maxY, maxZ, wMax);
-                detectionBox = new AABB(
-                        Math.min(wMin.x, wMax.x), Math.min(wMin.y, wMax.y), Math.min(wMin.z, wMax.z),
-                        Math.max(wMin.x, wMax.x), Math.max(wMin.y, wMax.y), Math.max(wMin.z, wMax.z)
-                );
-            }
-        }
+        AABB detectionBox = new AABB(
+                pos.getX(), pos.getY(), pos.getZ(),
+                pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1
+        );
 
         return new ArrayList<>(level.getEntitiesOfClass(VehicleEntity.class, detectionBox, e -> e.isAlive()));
-    }
-
-    /**
-     * Get the VS ship managing this block position, with caching.
-     * Returns null if VS is not loaded or no ship manages this block.
-     */
-    private Ship getShipManagingPos(Level level, BlockPos pos) {
-        int currentTick = (int) level.getGameTime();
-        if (currentTick - shipCacheTick >= SHIP_CACHE_INTERVAL) {
-            shipCacheTick = currentTick;
-            cachedShip = ValkyrienSkies.getShipManagingBlock(level, pos);
-        }
-        return cachedShip;
     }
 
     /**

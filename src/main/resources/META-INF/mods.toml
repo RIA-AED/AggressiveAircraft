@@ -69,11 +69,3 @@ mandatory = true
 versionRange = "[1.0.0,)"
 ordering = "AFTER"
 side = "BOTH"
-
-# Create Big Cannons optional dependency
-[[dependencies."${mod_id}"]]
-modId = "createbigcannons"
-mandatory = false
-versionRange = "[5.0.0,)"
-ordering = "NONE"
-side = "BOTH"
