@@ -5,8 +5,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 
-import java.util.List;
-
 @Mod.EventBusSubscriber(modid = dev.ignis.aggressiveaircraft.AggressiveAircraft.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
@@ -64,9 +62,6 @@ public class ModConfig {
     public static final ForgeConfigSpec.DoubleValue ROTARY_CANNON_EXPLOSION_POWER;
     public static final ForgeConfigSpec.BooleanValue ROTARY_CANNON_DESTROY_BLOCKS;
 
-    // Aircraft Repair Config
-    public static final ForgeConfigSpec.ConfigValue<List<String>> AIRCRAFT_REPAIR_ITEMS;
-
     // Napalm Bomb Config
     public static final ForgeConfigSpec.ConfigValue<String> NAPALM_BOMB_AMMO;
     public static final ForgeConfigSpec.IntValue NAPALM_BOMB_AMMO_CONSUMPTION;
@@ -75,9 +70,6 @@ public class ModConfig {
     public static final ForgeConfigSpec.IntValue NAPALM_BOMB_FIRE_DAMAGE;
     public static final ForgeConfigSpec.IntValue NAPALM_BOMB_BURN_DURATION;
     public static final ForgeConfigSpec.DoubleValue NAPALM_BOMB_IGNITE_CHANCE;
-
-    // Inventory Control Config
-    public static final ForgeConfigSpec.DoubleValue INVENTORY_HEIGHT_THRESHOLD;
 
     // Supply Station Config
     public static final ForgeConfigSpec.IntValue SUPPLY_STATION_RF_PER_STACK;
@@ -239,20 +231,6 @@ public class ModConfig {
                 .comment("Maximum ignite probability at center of fire radius. " +
                         "Decays linearly to 0 at the edge. Higher values = denser fire.")
                 .defineInRange("ignite_chance", 0.9, 0.0, 1.0);
-        BUILDER.pop();
-
-        BUILDER.push("aircraft_repair");
-        AIRCRAFT_REPAIR_ITEMS = BUILDER
-                .comment("机上自动维修：乘客/驾驶员快捷栏内携带这些物品时，每秒自动消耗一个，为飞机恢复对应点数血量。",
-                        "格式：\"物品ID:点数\" 列表，例如 \"minecraft:iron_ingot:1\"。",
-                        "点数与伤害同一量纲：满血飞机 = damagePerHealthPoint 点伤害（默认30）")
-                .define("repair_items", List.of("minecraft:iron_ingot:1"));
-        BUILDER.pop();
-
-        BUILDER.push("inventory_control");
-        INVENTORY_HEIGHT_THRESHOLD = BUILDER
-                .comment("Height threshold below which inventory can be opened (blocks). Set to 0 to disable.")
-                .defineInRange("height_threshold", 320.0, 0.0, 10000.0);
         BUILDER.pop();
 
         BUILDER.push("supply_station");

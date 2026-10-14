@@ -8,17 +8,10 @@
     "BambooHopperEntityMixin",
     "BulletWeaponAccessor",
     "EngineVehicleAccessor",
-    "InventoryVehicleEntityMixin",
     "PrimedTntAccessor",
-    "SlotMixin",
     "SparseSimpleInventoryMixin",
     "VehicleEntityMixin",
-    "VehicleEntityRepairMixin",
-    "VehicleEntitySelfExplosionMixin",
-    "VehicleScreenHandlerMixin"
-  ],
-  "client": [
-    "client.LocalPlayerMixin"
+    "VehicleEntitySelfExplosionMixin"
   ],
   "injectors": {
     "defaultRequire": 1
